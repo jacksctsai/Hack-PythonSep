@@ -10,8 +10,13 @@ import Tkinter
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 
+UNIT_X = 30
+UNIT_Y = 30
+
 PIECE_INIT_X = 3
 PIECE_INIT_Y = -2
+
+BACKGROUND_COLOR = '#000'
 
 #===============================================================================
 # piece
@@ -65,9 +70,8 @@ def new_piece():
 #===============================================================================
 # drawing transform
 #===============================================================================
-H, W = 30, 30
-map_to_ui_x = lambda i: i * W
-map_to_ui_y = lambda j: j * H
+map_to_ui_x = lambda i: i * UNIT_X
+map_to_ui_y = lambda j: j * UNIT_Y
 
 def ui_create_rect(i, j, color):
     assert isinstance(i, int)
@@ -80,13 +84,14 @@ def ui_create_rect(i, j, color):
 
 
 def redraw_ui():
-    scr.delete("all")
+    piece_region = [(i + px, j + py) for i, j in piece]
 
+    scr.delete("all")
     for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
-        if (i - px, j - py) in piece:
+        if (i, j) in piece_region:
             color = PIECE_COLOR[pc]
         else:
-            color = PIECE_COLOR.get(board[j][i], "#000")
+            color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
         ui_create_rect(i, j, color)
 
 
@@ -135,7 +140,7 @@ def tick(e=None):
 #  print px,py
 
 if __name__ == '__main__':
-    scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg="#000")
+    scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
     scr.after(300, tick)
     scr.bind_all("<Key>", tick)
     scr.pack()
