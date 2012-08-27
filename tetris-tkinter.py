@@ -48,6 +48,17 @@ def ui_create_rect(i, j, color):
     scr.create_rectangle(x0, y0, x1, y1, fill=color)
 
 
+def redraw_ui():
+    scr.delete("all")
+
+    for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
+        if (i - px, j - py) in piece:
+            color = PIECE_COLOR[pc]
+        else:
+            color = PIECE_COLOR.get(board[j][i], "#000")
+        ui_create_rect(i, j, color)
+
+
 #===============================================================================
 # 
 #===============================================================================
@@ -78,14 +89,8 @@ def tick(e=None):
         s = len(board) - len(nb)
         if s: score, board = score + 2 ** s, [board[-1][:] for j in range(s)] + nb
         scr.after(300, tick)
-    scr.delete("all")
 
-    for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
-        if (i - px, j - py) in piece:
-            color = PIECE_COLOR[pc]
-        else:
-            color = PIECE_COLOR.get(board[j][i], "#000")
-        ui_create_rect(i, j, color)
+    redraw_ui()
 
 
 #  for line in board: print '\t'.join(str(v) for v in line)
