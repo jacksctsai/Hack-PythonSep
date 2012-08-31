@@ -96,9 +96,34 @@ def redraw_ui():
 
 
 #===============================================================================
-# 
+# score
 #===============================================================================
 score = 0
+def reset_score():
+    global score
+    score = 0
+
+
+def get_score():
+    return score
+
+
+def incr_score(value):
+    global score
+    assert isinstance(value, int)
+    score += value
+
+
+#===============================================================================
+# 
+#===============================================================================
+def game_over():
+    sys.exit("GAME OVER: score %i" % get_score()) # game over 的狀況
+
+
+#===============================================================================
+# 
+#===============================================================================
 board = [ [0xf if j == BOARD_HEIGHT else 0] * BOARD_WIDTH + [0xf] * 2 for j in range(BOARD_HEIGHT + 2 + 1) ]
 collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
 
@@ -110,26 +135,40 @@ piece, pc = new_piece() # 第一個piece
 px, py = PIECE_INIT_X, PIECE_INIT_Y
 
 def tick(e=None):
-    global piece, px, py, pc, tickcnt, board, score
+    global piece, px, py, pc, tickcnt, board
 
     keys = e.keysym if e else  "" # get key event
 
     npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
     npiece = [(j, 3 - i) for (i, j) in piece] if keys == "Up" else piece   #rotate
-    if not collide(npiece, npx, py): piece, px = npiece, npx
-    if keys == "Down": py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
+
+    if not collide(npiece, npx, py):
+        piece, px = npiece, npx
+
+    if keys == "Down":
+        py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
 
     if e == None:
         if collide(piece, px, py + 1):
-            if py < 0: sys.exit("GAME OVER: score %i" % score) # game over 的狀況
-            for i, j in piece: board[j + py][i + px] = pc
+            if py < 0:
+                game_over()
+                return
+
+            for i, j in piece:
+                board[j + py][i + px] = pc
+
             piece, pc = new_piece()
             px, py = PIECE_INIT_X, PIECE_INIT_Y
-        else: py += 1
+
+        else:
+            py += 1
 
         nb = [l for l in board[:BOARD_HEIGHT] if 0 in l] + board[BOARD_HEIGHT:] # 沒有被填滿的
         s = len(board) - len(nb)
-        if s: score, board = score + 2 ** s, [board[-1][:] for j in range(s)] + nb
+        if s:
+            board = [board[-1][:] for j in range(s)] + nb
+            incr_score(2 ** s)
+
         scr.after(300, tick)
 
     redraw_ui()
