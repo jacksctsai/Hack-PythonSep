@@ -162,6 +162,15 @@ def place_piece(piece, px, py, pc):
         board[y][x] = pc
 
 
+def clear_complete_lines():
+    global board
+    nb = [l for l in board[:BOARD_HEIGHT] if 0 in l] + board[BOARD_HEIGHT:] # 沒有被填滿的
+    s = len(board) - len(nb)
+    if s:
+        board = [board[-1][:] for j in range(s)] + nb
+    return s
+
+
 #===============================================================================
 # 
 #===============================================================================
@@ -196,10 +205,8 @@ def tick(e=None):
         else:
             py += 1
 
-        nb = [l for l in board[:BOARD_HEIGHT] if 0 in l] + board[BOARD_HEIGHT:] # 沒有被填滿的
-        s = len(board) - len(nb)
+        s = clear_complete_lines()
         if s:
-            board = [board[-1][:] for j in range(s)] + nb
             incr_score(2 ** s)
 
         scr.after(300, tick)
