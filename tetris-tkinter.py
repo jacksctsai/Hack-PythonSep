@@ -74,8 +74,8 @@ map_to_ui_x = lambda i: i * UNIT_X
 map_to_ui_y = lambda j: j * UNIT_Y
 
 def ui_create_rect(i, j, color):
-    assert isinstance(i, int)
-    assert isinstance(j, int)
+    assert isinstance(i, int), i
+    assert isinstance(j, int), j
     x0 = map_to_ui_x(i)
     y0 = map_to_ui_y(j)
     x1 = map_to_ui_x(i + 1)
@@ -110,8 +110,29 @@ def get_score():
 
 def incr_score(value):
     global score
-    assert isinstance(value, int)
+    assert isinstance(value, int), value
     score += value
+
+
+#===============================================================================
+# collide
+#===============================================================================
+"""
+collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
+"""
+def collide(piece, px, py):
+    assert isinstance(px, int), px
+    assert isinstance(py, int), py
+    for (i, j) in piece:
+        x = px + i
+        y = py + j
+        if not (0 <= x < BOARD_WIDTH):
+            return True
+        if not (y < BOARD_HEIGHT):
+            return True
+        if board[y][x]:
+            return True
+    return False
 
 
 #===============================================================================
@@ -125,7 +146,6 @@ def game_over():
 # 
 #===============================================================================
 board = [ [0xf if j == BOARD_HEIGHT else 0] * BOARD_WIDTH + [0xf] * 2 for j in range(BOARD_HEIGHT + 2 + 1) ]
-collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
 
 
 #===============================================================================
