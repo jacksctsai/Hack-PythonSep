@@ -143,9 +143,23 @@ def game_over():
 
 
 #===============================================================================
-# 
+# board
 #===============================================================================
 board = [ [0xf if j == BOARD_HEIGHT else 0] * BOARD_WIDTH + [0xf] * 2 for j in range(BOARD_HEIGHT + 2 + 1) ]
+
+def place_piece(piece, px, py, pc):
+    """
+    for i, j in piece:
+        board[j + py][i + px] = pc
+    """
+    for i, j in piece:
+        x = px + i
+        y = py + j
+        if not (0 <= x < BOARD_WIDTH):
+            continue
+        if not (0 <= y < BOARD_HEIGHT):
+            continue
+        board[y][x] = pc
 
 
 #===============================================================================
@@ -174,8 +188,7 @@ def tick(e=None):
                 game_over()
                 return
 
-            for i, j in piece:
-                board[j + py][i + px] = pc
+            place_piece(piece, px, py, pc)
 
             piece, pc = new_piece()
             px, py = PIECE_INIT_X, PIECE_INIT_Y
