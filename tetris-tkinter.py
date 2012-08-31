@@ -128,8 +128,10 @@ def collide(piece, px, py):
         y = py + j
         if not (0 <= x < BOARD_WIDTH):
             return True
-        if not (y < BOARD_HEIGHT):
+        if y >= BOARD_HEIGHT:
             return True
+        if y < 0:
+            continue
         if board[y][x]:
             return True
     return False
@@ -145,7 +147,13 @@ def game_over():
 #===============================================================================
 # board
 #===============================================================================
-board = [ [0xf if j == BOARD_HEIGHT else 0] * BOARD_WIDTH + [0xf] * 2 for j in range(BOARD_HEIGHT + 2 + 1) ]
+def new_board_lines(num):
+    assert isinstance(num, int), num
+    return [[0] * BOARD_WIDTH for j in range(num)]
+
+
+board = new_board_lines(BOARD_HEIGHT)
+
 
 def place_piece(piece, px, py, pc):
     """
@@ -164,10 +172,10 @@ def place_piece(piece, px, py, pc):
 
 def clear_complete_lines():
     global board
-    nb = [l for l in board[:BOARD_HEIGHT] if 0 in l] + board[BOARD_HEIGHT:] # 沒有被填滿的
+    nb = [l for l in board if 0 in l] # 沒有被填滿的
     s = len(board) - len(nb)
     if s:
-        board = [board[-1][:] for j in range(s)] + nb
+        board = new_board_lines(s) + nb
     return s
 
 
@@ -178,7 +186,7 @@ piece, pc = new_piece() # 第一個piece
 px, py = PIECE_INIT_X, PIECE_INIT_Y
 
 def tick(e=None):
-    global piece, px, py, pc, tickcnt, board
+    global piece, px, py, pc
 
     keys = e.keysym if e else  "" # get key event
 
