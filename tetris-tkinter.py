@@ -67,6 +67,49 @@ def new_piece():
     p_shape = copy.deepcopy(PIECE_SHAPE[p])
     return p_shape, p
 
+
+#===============================================================================
+# piece : action
+#===============================================================================
+"""
+    npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
+    npiece = [(j, 3 - i) for (i, j) in piece] if keys == "Up" else piece   #rotate
+
+    if not collide(npiece, npx, py):
+        piece, px = npiece, npx
+
+    if keys == "Down":
+        py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
+"""
+def move_piece_left():
+    global px
+    npx = px - 1
+    if not collide(piece, npx, py):
+        px = npx
+
+
+def move_piece_right():
+    global px
+    npx = px + 1
+    if not collide(piece, npx, py):
+        px = npx
+
+
+def rotate_piece():
+    global piece
+    npiece = [(j, 3 - i) for (i, j) in piece]
+    if not collide(npiece, px, py):
+        piece = npiece
+
+
+def fall_piece():
+    global py
+    for j in range(py, BOARD_HEIGHT):
+        py = j
+        if collide(piece, px, j + 1):
+            return
+
+
 #===============================================================================
 # drawing transform
 #===============================================================================
@@ -190,14 +233,14 @@ def tick(e=None):
 
     keys = e.keysym if e else  "" # get key event
 
-    npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
-    npiece = [(j, 3 - i) for (i, j) in piece] if keys == "Up" else piece   #rotate
-
-    if not collide(npiece, npx, py):
-        piece, px = npiece, npx
-
-    if keys == "Down":
-        py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
+    if keys == 'Left':
+        move_piece_left()
+    elif keys == 'Right':
+        move_piece_right()
+    elif keys == 'Up':
+        rotate_piece()
+    elif keys == 'Down':
+        fall_piece()
 
     if e == None:
         if collide(piece, px, py + 1):
