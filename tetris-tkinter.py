@@ -113,8 +113,13 @@ def fall_piece():
 #===============================================================================
 # drawing transform
 #===============================================================================
-map_to_ui_x = lambda i: i * UNIT_X
-map_to_ui_y = lambda j: j * UNIT_Y
+def map_to_ui_x(i):
+    return i * UNIT_X
+
+
+def map_to_ui_y(j):
+    return j * UNIT_Y
+
 
 def ui_create_rect(i, j, color):
     assert isinstance(i, int), i
@@ -141,7 +146,6 @@ def redraw_ui():
 #===============================================================================
 # score
 #===============================================================================
-score = 0
 def reset_score():
     global score
     score = 0
@@ -178,13 +182,6 @@ def collide(piece, px, py):
         if board[y][x]:
             return True
     return False
-
-
-#===============================================================================
-# 
-#===============================================================================
-def game_over():
-    sys.exit("GAME OVER: score %i" % get_score()) # game over 的狀況
 
 
 #===============================================================================
@@ -225,9 +222,13 @@ def clear_complete_lines():
 #===============================================================================
 # 
 #===============================================================================
-piece, pc = new_piece() # 第一個piece
-px, py = PIECE_INIT_X, PIECE_INIT_Y
+def game_over():
+    sys.exit("GAME OVER: score %i" % get_score()) # game over 的狀況
 
+
+#===============================================================================
+# tick
+#===============================================================================
 def tick(e=None):
     global piece, px, py, pc
 
@@ -265,13 +266,32 @@ def tick(e=None):
     redraw_ui()
 
 
-#  for line in board: print '\t'.join(str(v) for v in line)
-#  print len(board)
-#  print px,py
+#===============================================================================
+# initial
+#===============================================================================
+board = None
+piece = None
+pc = None
+px = PIECE_INIT_X
+py = PIECE_INIT_Y
+score = 0
+scr = None
 
-if __name__ == '__main__':
+def init_tetris():
+    global board, piece, pc, scr
+    board = new_board_lines(BOARD_HEIGHT)
+    piece, pc = new_piece() # 第一個piece
+    reset_score()
+
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
     scr.after(300, tick)
     scr.bind_all("<Key>", tick)
     scr.pack()
     scr.mainloop()
+
+#  for line in board: print '\t'.join(str(v) for v in line)
+#  print len(board)
+#  print px,py
+
+if __name__ == '__main__':
+    init_tetris()
