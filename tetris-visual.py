@@ -48,6 +48,10 @@ def init_ui():
     visual.points(pos=[(x, y) for x in xrange(BOARD_WIDTH) for y in xrange(BOARD_HEIGHT)])
 
 
+def distory_ui():
+    visual.scene.visible = False
+
+
 def set_animation_rate(rate):
     assert isinstance(rate, int), rate
     visual.rate(rate)
@@ -180,7 +184,7 @@ def game_over():
 
 
 def quit_game():
-    visual.scene.visible = False
+    distory_ui()
     exit()
 
 
@@ -236,8 +240,7 @@ def tick(t_stamp=[time.time(), 0]):
     if key == 'p':
       switch_pause()
     elif key == 'q':
-      visual.scene.visible = False
-      exit()
+      quit_game()
 
     if not is_pause():
       move(key)
