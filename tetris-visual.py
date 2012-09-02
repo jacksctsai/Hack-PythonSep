@@ -23,24 +23,63 @@ any = __builtins__.any
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 
-score, R, N, T = 0, 0.9, 100, 0.5
-visual.scene.center = ((BOARD_WIDTH - 1) / 2, (BOARD_HEIGHT - 1) / 2)
-visual.scene.width = BOARD_WIDTH * 35
-visual.scene.height = BOARD_HEIGHT * 35
-visual.scene.forward = (0, 0, +1)
-visual.scene.up = 0, -1, 0
-visual.scene.lights = [
-    visual.distant_light(direction=(0.22, 0.44, -0.88), color=visual.color.gray(0.8)),
-    visual.distant_light(direction=(-0.88, -0.22, +0.44), color=visual.color.gray(0.3))]
-visual.scene.autoscale = False
-#visual.scene.show_rendertime = 1
-visual.scene.pause = False
-
 blk = { 0x0f:(0, 0, 1), 0x2e:(0, 1, 1), 0x27:(0, 1, 0), 0x47:(1, 0, 1), 0xC6:(1, 0, 0), 0x6C:(1, 1, 0), 0x66:(1, 0.6, 0) }
+score, R, N, T = 0, 0.9, 100, 0.5
 
 new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
+
+
+#===============================================================================
+# ui
+#===============================================================================
+def init_ui():
+    visual.scene.center = ((BOARD_WIDTH - 1) / 2, (BOARD_HEIGHT - 1) / 2)
+    visual.scene.width = BOARD_WIDTH * 35
+    visual.scene.height = BOARD_HEIGHT * 35
+    visual.scene.forward = (0, 0, +1)
+    visual.scene.up = 0, -1, 0
+    visual.scene.lights = [
+        visual.distant_light(direction=(0.22, 0.44, -0.88), color=visual.color.gray(0.8)),
+        visual.distant_light(direction=(-0.88, -0.22, +0.44), color=visual.color.gray(0.3))]
+    visual.scene.autoscale = False
+    #visual.scene.show_rendertime = 1
+    visual.scene.pause = False
+
+    visual.points(pos=[(x, y) for x in xrange(BOARD_WIDTH) for y in xrange(BOARD_HEIGHT)])
+
+
+def set_animation_rate(rate):
+    assert isinstance(rate, int), rate
+    visual.rate(rate)
+
+
+def clear_ui_lines(fn):
+    d_line = [obj for obj in visual.scene.objects if type(obj) is visual.box and obj.y in fn]
+    for _ in xrange(10):
+        set_animation_rate(20)
+        for obj in d_line:
+            obj.opacity -= 1 / 10
+    for obj in d_line:
+        obj.visible = 0
+
+    # 下降
+    for n in fn:
+        for obj in (obj for obj in visual.scene.objects if type(obj) is visual.box and obj.y < n):
+            obj.y += 1
+
+
 new_focus = lambda piece, pc: [visual.box(pos=p, color=blk[pc], size=(R, R, R)) for p in piece]
-visual.points(pos=[(x, y) for x in xrange(BOARD_WIDTH) for y in xrange(BOARD_HEIGHT)])
+
+
+#===============================================================================
+# ui : pause
+#===============================================================================
+def is_pause():
+    return visual.scene.pause
+
+
+def switch_pause():
+    visual.scene.pause = (not visual.scene.pause)
 
 
 #===============================================================================
@@ -128,29 +167,13 @@ def clear_complete_lines():
 
     # 消去
     sound.distroy_sound.play()
-    d_line = [obj for obj in visual.scene.objects if type(obj) is visual.box and obj.y in fn]
-    for _ in xrange(10):
-        visual.rate(20)
-        for obj in d_line:
-            obj.opacity -= 1 / 10
-    for obj in d_line:
-        obj.visible = 0
-
-    # 下降
-    for n in fn:
-        for obj in (obj for obj in visual.scene.objects if type(obj) is visual.box and obj.y < n):
-            obj.y += 1
-
+    clear_ui_lines(fn)
     return fn
 
 
 #===============================================================================
 # 
 #===============================================================================
-def switch_pause():
-    visual.scene.pause = (not visual.scene.pause)
-
-
 def game_over():
     exit("GAME OVER: score %i" % get_score()) # game over 的狀況
 
@@ -163,7 +186,7 @@ def tick(t_stamp=[time.time(), 0]):
 
   # 自動處理
   t_stamp[1] = time.time()
-  if t_stamp[1] - t_stamp[0] > T and not visual.scene.pause:
+  if t_stamp[1] - t_stamp[0] > T and not is_pause():
     if not collide(piece, px, py + 1): #自動落下
       py += 1
 
@@ -213,11 +236,13 @@ def tick(t_stamp=[time.time(), 0]):
 
 
 # mainloop
+init_ui()
+sound.init_sound()
+
 piece, px, py, pc = new_piece(choice(blk.keys()))
 focus = new_focus(piece, pc)
-sound.init_sound()
 while 1:
-    visual.rate(N)
+    set_animation_rate(N)
     tick()
 
 
