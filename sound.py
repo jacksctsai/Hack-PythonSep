@@ -10,7 +10,7 @@ def init_sound():
     pygame.init()
 
     bgm = pygame.mixer.Sound("sounds/bgm_106739__starsareforstaring__bomb.ogg")
-    rotate_sound = pygame.mixer.Sound("sound/rotate_bird.ogg")
+    rotate_sound = pygame.mixer.Sound("sounds/rotate_bird.ogg")
     distroy_sound = pygame.mixer.Sound("sounds/distroy_87572__huluvu42__platzender-kopf-nachschlag.wav")
 
     bgm.set_volume(0.5)
