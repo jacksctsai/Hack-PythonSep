@@ -81,6 +81,10 @@ def clear_ui_lines(fn):
 new_focus = lambda piece, pc: [visual.box(pos=p, color=blk[pc], size=(R, R, R)) for p in piece]
 
 
+def update_focus(piece, px, py):
+    for i in xrange(4): focus[i].pos = visual.vector(px, py) + piece[i]
+
+
 #===============================================================================
 # ui : pause
 #===============================================================================
@@ -251,7 +255,7 @@ def tick(t_stamp=[time.time(), 0]):
       move(key)
 
   # 方塊位置變更
-  for i in xrange(4): focus[i].pos = visual.vector(px, py) + piece[i]
+  update_focus(piece, px, py)
 
 
 # mainloop
