@@ -175,7 +175,13 @@ def clear_complete_lines():
 # 
 #===============================================================================
 def game_over():
-    exit("GAME OVER: score %i" % get_score()) # game over 的狀況
+    print "GAME OVER: score %i" % get_score() # game over 的狀況
+    quit_game()
+
+
+def quit_game():
+    visual.scene.visible = False
+    exit()
 
 
 #===============================================================================
@@ -209,6 +215,7 @@ def tick(t_stamp=[time.time(), 0]):
 
   # 鍵盤控制
   def move(key):
+    global piece, px, py
     if key in ('down', 'j'):
       py = (j for j in xrange(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()# 找出第一個會碰撞的
     elif key in ('up', 'k'):
