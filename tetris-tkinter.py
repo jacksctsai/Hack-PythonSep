@@ -222,6 +222,12 @@ def clear_complete_lines():
 #===============================================================================
 # 
 #===============================================================================
+def switch_pause():
+    global pause
+    assert isinstance(pause, bool), pause
+    pause = (not pause)
+
+
 def game_over():
     sys.exit("GAME OVER: score %i" % get_score()) # game over 的狀況
 
@@ -230,11 +236,13 @@ def game_over():
 # tick
 #===============================================================================
 def tick(e=None):
-    global piece, px, py, pc
+    global piece, px, py, pc, pause
 
     keys = e.keysym if e else  "" # get key event
 
-    if keys == 'Left':
+    if keys == 'p':
+        switch_pause()
+    elif keys == 'Left':
         move_piece_left()
     elif keys == 'Right':
         move_piece_right()
@@ -242,6 +250,9 @@ def tick(e=None):
         rotate_piece()
     elif keys == 'Down':
         fall_piece()
+
+    if pause:
+        return
 
     if e == None:
         if collide(piece, px, py + 1):
@@ -275,6 +286,7 @@ pc = None
 px = PIECE_INIT_X
 py = PIECE_INIT_Y
 score = 0
+pause = False
 scr = None
 
 def init_tetris():
