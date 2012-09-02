@@ -228,7 +228,7 @@ def tick(t_stamp=[time.time(), 0]):
       visual.scene.visible = False
       exit()
 
-    if not scene.pause:
+    if not is_pause():
       move(key)
 
   # 方塊位置變更
