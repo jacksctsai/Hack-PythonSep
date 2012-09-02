@@ -11,6 +11,7 @@
 
 from __future__ import division
 from random import choice
+import sound
 import time
 from visual import *
 any = __builtins__.any
@@ -120,10 +121,13 @@ def clear_complete_lines():
         else:
             fn.append(j)
 
-    if fn:
-        board = new_board_lines(len(fn)) + nb
+    if not fn:
+        return fn
+
+    board = new_board_lines(len(fn)) + nb
 
     # 消去
+    sound.distroy_sound.play()
     d_line = [obj for obj in scene.objects if type(obj) is box and obj.y in fn]
     for _ in xrange(10):
         rate(20)
@@ -183,9 +187,10 @@ def tick(t_stamp=[time.time(), 0]):
   # 鍵盤控制
   if scene.kb.keys:
     key = scene.kb.getkey()
-    if   key in ('down', 'j'):
+    if key in ('down', 'j'):
       py = (j for j in xrange(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()# 找出第一個會碰撞的
     elif key in ('up', 'k'):
+      sound.rotate_sound.play()
       npiece = [(j, 3 - i) for (i, j) in piece]
       if not collide(npiece, px, py): piece = npiece
     elif key in ('left', 'right', 'h', 'H', 'l', 'L'):
@@ -200,6 +205,7 @@ def tick(t_stamp=[time.time(), 0]):
 # mainloop
 piece, px, py, pc = new_piece(choice(blk.keys()))
 focus = new_focus(piece, pc)
+sound.init_sound()
 while 1:
   rate(N)
   tick()
