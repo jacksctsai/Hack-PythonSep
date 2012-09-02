@@ -148,7 +148,7 @@ def clear_complete_lines():
 # 
 #===============================================================================
 def switch_pause():
-    scene.pause = (not scene.pause)
+    visual.scene.pause = (not visual.scene.pause)
 
 
 def game_over():
@@ -200,9 +200,9 @@ def tick(t_stamp=[time.time(), 0]):
     key = visual.scene.kb.getkey()
 
     if key == 'p':
-      visual.scene.pause = switch_pause()
+      switch_pause()
     elif key == 'q':
-      visual.scene.visible=False
+      visual.scene.visible = False
       exit()
 
     if not scene.pause:
