@@ -57,6 +57,12 @@ def set_animation_rate(rate):
     visual.rate(rate)
 
 
+def get_key():
+    if visual.scene.kb.keys:
+        return visual.scene.kb.getkey()
+    return None
+
+
 def clear_ui_lines(fn):
     d_line = [obj for obj in visual.scene.objects if type(obj) is visual.box and obj.y in fn]
     for _ in xrange(10):
@@ -234,9 +240,8 @@ def tick(t_stamp=[time.time(), 0]):
 
     t_stamp[0] = t_stamp[1]
 
-  if visual.scene.kb.keys:
-    key = visual.scene.kb.getkey()
-
+  key = get_key()
+  if key:
     if key == 'p':
       switch_pause()
     elif key == 'q':
