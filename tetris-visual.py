@@ -185,8 +185,7 @@ def tick(t_stamp=[time.time(), 0]):
     t_stamp[0] = t_stamp[1]
 
   # 鍵盤控制
-  if visual.scene.kb.keys:
-    key = visual.scene.kb.getkey()
+  def move(key):
     if key in ('down', 'j'):
       py = (j for j in xrange(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()# 找出第一個會碰撞的
     elif key in ('up', 'k'):
@@ -196,8 +195,18 @@ def tick(t_stamp=[time.time(), 0]):
     elif key in ('left', 'right', 'h', 'H', 'l', 'L'):
       npx = px + (-1 if key in ('left', 'h', 'H') else 1)
       if not collide(piece, npx, py): px = npx
-    elif key == 'p':
+
+  if visual.scene.kb.keys:
+    key = visual.scene.kb.getkey()
+
+    if key == 'p':
       visual.scene.pause = switch_pause()
+    elif key == 'q':
+      visual.scene.visible=False
+      exit()
+
+    if not scene.pause:
+      move(key)
 
   # 方塊位置變更
   for i in xrange(4): focus[i].pos = visual.vector(px, py) + piece[i]
