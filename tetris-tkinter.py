@@ -240,15 +240,15 @@ def tick(e=None):
 
     keys = e.keysym if e else  "" # get key event
 
-    if keys == 'p':
+    if keys in ['p', 'P']:
         switch_pause()
-    elif keys == 'Left':
+    elif keys in ['Left', 'h', 'H']:
         move_piece_left()
-    elif keys == 'Right':
+    elif keys in ['Right', 'l', 'L']:
         move_piece_right()
-    elif keys == 'Up':
+    elif keys in ['Up', 'k', 'K']:
         rotate_piece()
-    elif keys == 'Down':
+    elif keys in ['Down', 'j', 'J']:
         fall_piece()
 
     if pause:
