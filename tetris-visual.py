@@ -185,6 +185,23 @@ def quit_game():
 
 
 #===============================================================================
+# move
+#===============================================================================
+def move(key):
+    # 鍵盤控制
+    global piece, px, py
+    if key in ('down', 'j'):
+        py = (j for j in xrange(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()# 找出第一個會碰撞的
+    elif key in ('up', 'k'):
+        sound.rotate_sound.play()
+        npiece = [(j, 3 - i) for (i, j) in piece]
+        if not collide(npiece, px, py): piece = npiece
+    elif key in ('left', 'right', 'h', 'H', 'l', 'L'):
+        npx = px + (-1 if key in ('left', 'h', 'H') else 1)
+        if not collide(piece, npx, py): px = npx
+
+
+#===============================================================================
 # tick
 #===============================================================================
 def tick(t_stamp=[time.time(), 0]):
@@ -212,19 +229,6 @@ def tick(t_stamp=[time.time(), 0]):
       focus = new_focus(piece, pc)
 
     t_stamp[0] = t_stamp[1]
-
-  # 鍵盤控制
-  def move(key):
-    global piece, px, py
-    if key in ('down', 'j'):
-      py = (j for j in xrange(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()# 找出第一個會碰撞的
-    elif key in ('up', 'k'):
-      sound.rotate_sound.play()
-      npiece = [(j, 3 - i) for (i, j) in piece]
-      if not collide(npiece, px, py): piece = npiece
-    elif key in ('left', 'right', 'h', 'H', 'l', 'L'):
-      npx = px + (-1 if key in ('left', 'h', 'H') else 1)
-      if not collide(piece, npx, py): px = npx
 
   if visual.scene.kb.keys:
     key = visual.scene.kb.getkey()
