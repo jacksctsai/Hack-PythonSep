@@ -9,8 +9,19 @@
 # update: 2012.07.29 完成大部分功能
 # update: 2012.09.01 加入暫停與 hjkl 方向鍵控制 (Vim 操作練習?!)
 
+#===============================================================================
 # TODO: 觀戰
-
+#   1. 遊戲開始後，可在任何時間加入觀戰
+#   2. 傳送給觀戰者的資料:
+#     - 當下 board 的狀態
+#     - 移動中的 piece
+#     - 分數
+#     - 是否暫停
+#     - 是否 game over
+#   3. 需要制定:
+#     - 資料傳送格式
+#     - 更新 UI 用的 API
+#===============================================================================
 
 from __future__ import division
 import time
@@ -27,9 +38,7 @@ import ui
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 
-#===============================================================================
-# piece
-#===============================================================================
+
 score, N, T = 0, 100, 0.5
 
 
@@ -81,7 +90,7 @@ def collide(pc, px, py, pdir):
 #===============================================================================
 def new_board_lines(num):
     assert isinstance(num, int), num
-    return [[0] * BOARD_WIDTH for j in range(num)]
+    return [[0] * BOARD_WIDTH for _ in range(num)]
 
 
 board = new_board_lines(BOARD_HEIGHT)
@@ -198,17 +207,16 @@ def tick(t_stamp=[time.time(), 0]):
   ui.update_focus(pc, px, py, pdir)
 
 
-# mainloop
-ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
-sound.init_sound()
+if __name__ == '__main__':
+    ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
+    sound.init_sound()
 
-pc, px, py, pdir = pieces.new_piece()
-ui.new_focus(pc, pdir)
-while 1:
-    ui.set_animation_rate(N)
-    tick()
+    pc, px, py, pdir = pieces.new_piece()
+    ui.new_focus(pc, pdir)
 
-
+    while 1: # mainloop
+        ui.set_animation_rate(N)
+        tick()
 
 
 #### Debug 用的工具
