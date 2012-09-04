@@ -137,6 +137,38 @@ def clear_complete_lines():
 #===============================================================================
 # 
 #===============================================================================
+def fall_piece():
+    global py
+    py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
+
+
+def rotate_piece():
+    global pdir
+    sound.rotate_sound.play()
+    npdir = (pdir + 1) % 4
+    if not collide(pc, px, py, npdir): pdir = npdir
+
+
+def move_piece_left():
+    global px
+    npx = px - 1
+    if not collide(pc, npx, py, pdir): px = npx
+
+
+def move_piece_right():
+    global px
+    npx = px + 1
+    if not collide(pc, npx, py, pdir): px = npx
+
+
+def switch_pause():
+    ui.switch_pause()
+
+
+def is_pause():
+    return ui.is_pause()
+
+
 def game_over():
     print "GAME OVER: score %i" % get_score() # game over 的狀況
     quit_game()
@@ -148,20 +180,50 @@ def quit_game():
 
 
 #===============================================================================
-# move
+# 鍵盤控制
 #===============================================================================
-def move(key):
-    # 鍵盤控制
-    global pc, px, py, pdir
-    if key in ('down', 'j'):
-        py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
-    elif key in ('up', 'k'):
-        sound.rotate_sound.play()
-        npdir = (pdir + 1) % 4
-        if not collide(pc, px, py, npdir): pdir = npdir
-    elif key in ('left', 'right', 'h', 'H', 'l', 'L'):
-        npx = px + (-1 if key in ('left', 'h', 'H') else 1)
-        if not collide(pc, npx, py, pdir): px = npx
+NORMAL_ACTION_MAP = {
+    # switch_pause
+    'p': switch_pause,
+    'P': switch_pause,
+    # quit_game
+    'q': quit_game,
+    'Q': quit_game,
+    # fall_piece
+    'down': fall_piece,
+    'j': fall_piece,
+    'J': fall_piece,
+    # rotate_piece
+    'up': rotate_piece,
+    'k': rotate_piece,
+    'K': rotate_piece,
+    # move_piece_left
+    'left': move_piece_left,
+    'h': move_piece_left,
+    'H': move_piece_left,
+    # move_piece_right
+    'right': move_piece_right,
+    'l': move_piece_right,
+    'L': move_piece_right,
+}
+
+
+PAUSE_ACTION_MAP = {
+    # switch_pause
+    'p': switch_pause,
+    'P': switch_pause,
+    # quit_game
+    'q': quit_game,
+    'Q': quit_game,
+}
+
+
+def get_action(key, action_map):
+    try:
+        return action_map[key]
+    except KeyError:
+        no_action = lambda *args, **kwargs: None
+        return no_action
 
 
 #===============================================================================
@@ -172,7 +234,7 @@ def tick(t_stamp=[time.time(), 0]):
 
   # 自動處理
   t_stamp[1] = time.time()
-  if t_stamp[1] - t_stamp[0] > T and not ui.is_pause():
+  if t_stamp[1] - t_stamp[0] > T and not is_pause():
     if not collide(pc, px, py + 1, pdir): #自動落下
       py += 1
 
@@ -195,13 +257,12 @@ def tick(t_stamp=[time.time(), 0]):
 
   key = ui.get_key()
   if key:
-    if key == 'p':
-      ui.switch_pause()
-    elif key == 'q':
-      quit_game()
-
-    if not ui.is_pause():
-      move(key)
+    if is_pause():
+      action_map = PAUSE_ACTION_MAP
+    else:
+      action_map = NORMAL_ACTION_MAP
+    act_func = get_action(key, action_map)
+    act_func()
 
   # 方塊位置變更
   ui.update_focus(pc, px, py, pdir)
