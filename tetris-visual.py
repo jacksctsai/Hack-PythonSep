@@ -10,12 +10,13 @@
 # update: 2012.09.01 加入暫停與 hjkl 方向鍵控制 (Vim 操作練習?!)
 
 from __future__ import division
-import copy
 import random
-import sound
 import time
-import ui
 any = __builtins__.any
+
+import pieces
+import sound
+import ui
 
 
 #===============================================================================
@@ -25,6 +26,7 @@ BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 PIECE_INIT_X = 3
 PIECE_INIT_Y = -2
+PIECE_INIT_DIRECTION = 0
 
 #===============================================================================
 # piece
@@ -79,8 +81,7 @@ def new_piece():
     new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
     """
     p = random.choice(ALL_PIECES)
-    p_shape = copy.deepcopy(PIECE_SHAPE[p])
-    return p_shape, PIECE_INIT_X, PIECE_INIT_Y, p
+    return p, PIECE_INIT_X, PIECE_INIT_Y, PIECE_INIT_DIRECTION
 
 
 score, N, T = 0, 100, 0.5
@@ -110,10 +111,12 @@ def incr_score(value):
 """
 collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
 """
-def collide(piece, px, py):
+def collide(pc, px, py, pdir):
     assert isinstance(px, int), px
     assert isinstance(py, int), py
-    for (i, j) in piece:
+    assert isinstance(pdir, int), pdir
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    for (i, j) in p_shape:
         x = px + i
         y = py + j
         if not (0 <= x < BOARD_WIDTH):
@@ -138,12 +141,13 @@ def new_board_lines(num):
 board = new_board_lines(BOARD_HEIGHT)
 
 
-def place_piece(piece, px, py, pc):
+def place_piece(pc, px, py, pdir):
     """
     for i, j in piece:
         board[j + py][i + px] = pc
     """
-    for i, j in piece:
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    for i, j in p_shape:
         x = px + i
         y = py + j
         if not (0 <= x < BOARD_WIDTH):
@@ -193,28 +197,28 @@ def quit_game():
 #===============================================================================
 def move(key):
     # 鍵盤控制
-    global piece, px, py
+    global pc, px, py, pdir
     if key in ('down', 'j'):
-        py = (j for j in xrange(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()# 找出第一個會碰撞的
+        py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
     elif key in ('up', 'k'):
         sound.rotate_sound.play()
-        npiece = [(j, 3 - i) for (i, j) in piece]
-        if not collide(npiece, px, py): piece = npiece
+        npdir = (pdir + 1) % 4
+        if not collide(pc, px, py, npdir): pdir = npdir
     elif key in ('left', 'right', 'h', 'H', 'l', 'L'):
         npx = px + (-1 if key in ('left', 'h', 'H') else 1)
-        if not collide(piece, npx, py): px = npx
+        if not collide(pc, npx, py, pdir): px = npx
 
 
 #===============================================================================
 # tick
 #===============================================================================
 def tick(t_stamp=[time.time(), 0]):
-  global piece, px, py, pc
+  global pc, px, py, pdir
 
   # 自動處理
   t_stamp[1] = time.time()
   if t_stamp[1] - t_stamp[0] > T and not ui.is_pause():
-    if not collide(piece, px, py + 1): #自動落下
+    if not collide(pc, px, py + 1, pdir): #自動落下
       py += 1
 
     elif py < 0: #Game over
@@ -222,15 +226,15 @@ def tick(t_stamp=[time.time(), 0]):
       return
 
     else:  #到底
-      place_piece(piece, px, py, pc)
+      place_piece(pc, px, py, pdir)
 
       # 檢查消去
       fn = clear_complete_lines()
       if fn:
         incr_score(2 ** len(fn))
 
-      piece, px, py, pc = new_piece()
-      ui.new_focus(piece, PIECE_COLOR[pc])
+      pc, px, py, pdir = new_piece()
+      ui.new_focus(pc, pdir, PIECE_COLOR[pc])
 
     t_stamp[0] = t_stamp[1]
 
@@ -245,15 +249,15 @@ def tick(t_stamp=[time.time(), 0]):
       move(key)
 
   # 方塊位置變更
-  ui.update_focus(piece, px, py)
+  ui.update_focus(pc, px, py, pdir)
 
 
 # mainloop
 ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
 sound.init_sound()
 
-piece, px, py, pc = new_piece()
-ui.new_focus(piece, PIECE_COLOR[pc])
+pc, px, py, pdir = new_piece()
+ui.new_focus(pc, pdir, PIECE_COLOR[pc])
 while 1:
     ui.set_animation_rate(N)
     tick()
