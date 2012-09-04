@@ -9,6 +9,9 @@
 # update: 2012.07.29 完成大部分功能
 # update: 2012.09.01 加入暫停與 hjkl 方向鍵控制 (Vim 操作練習?!)
 
+# TODO: 觀戰
+
+
 from __future__ import division
 import time
 any = __builtins__.any
