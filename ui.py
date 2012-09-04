@@ -6,6 +6,16 @@ import pieces
 
 R = 0.9
 
+PIECE_COLOR = {
+    pieces.I_PIECE: (0, 0, 1),
+    pieces.J_PIECE: (0, 1, 1),
+    pieces.L_PIECE: (1, 0, 1),
+    pieces.O_PIECE: (1, 0.6, 0),
+    pieces.S_PIECE: (1, 0, 0),
+    pieces.T_PIECE: (0, 1, 0),
+    pieces.Z_PIECE: (1, 1, 0)
+}
+
 
 def init_ui(board_width, board_height):
     visual.scene.center = ((board_width - 1) / 2, (board_height - 1) / 2)
@@ -54,8 +64,9 @@ def clear_ui_lines(fn):
 
 
 focus = None
-def new_focus(pc, pdir, color):
+def new_focus(pc, pdir):
     global focus
+    color = PIECE_COLOR[pc]
     p_shape = pieces.get_piece_shape(pc, pdir)
     focus = [visual.box(pos=p, color=color, size=(R, R, R)) for p in p_shape]
 

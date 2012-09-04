@@ -1,3 +1,11 @@
+import random
+
+
+PIECE_INIT_X = 3
+PIECE_INIT_Y = -2
+PIECE_INIT_DIRECTION = 0
+
+
 I_PIECE = 0x0f
 J_PIECE = 0x2e
 L_PIECE = 0x47
@@ -6,6 +14,16 @@ S_PIECE = 0xC6
 T_PIECE = 0x27
 Z_PIECE = 0x6C
 
+
+ALL_PIECES = [
+    I_PIECE,
+    J_PIECE,
+    L_PIECE,
+    O_PIECE,
+    S_PIECE,
+    T_PIECE,
+    Z_PIECE
+]
 
 
 """
@@ -20,6 +38,14 @@ PIECE_SHAPE = {
     T_PIECE: [(1, 0), (1, 1), (1, 2), (2, 1)],
     Z_PIECE: [(1, 2), (1, 3), (2, 1), (2, 2)]
 }
+
+
+def new_piece():
+    """
+    new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
+    """
+    p = random.choice(ALL_PIECES)
+    return p, PIECE_INIT_X, PIECE_INIT_Y, PIECE_INIT_DIRECTION
 
 
 def get_piece_shape(piece_id, direction=0):

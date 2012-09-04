@@ -10,7 +10,6 @@
 # update: 2012.09.01 加入暫停與 hjkl 方向鍵控制 (Vim 操作練習?!)
 
 from __future__ import division
-import random
 import time
 any = __builtins__.any
 
@@ -24,66 +23,10 @@ import ui
 #===============================================================================
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
-PIECE_INIT_X = 3
-PIECE_INIT_Y = -2
-PIECE_INIT_DIRECTION = 0
 
 #===============================================================================
 # piece
 #===============================================================================
-I_PIECE = 0x0f
-J_PIECE = 0x2e
-L_PIECE = 0x47
-O_PIECE = 0x66
-S_PIECE = 0xC6
-T_PIECE = 0x27
-Z_PIECE = 0x6C
-
-
-ALL_PIECES = [
-    I_PIECE,
-    J_PIECE,
-    L_PIECE,
-    O_PIECE,
-    S_PIECE,
-    T_PIECE,
-    Z_PIECE
-]
-
-
-"""
-shape = lambda pc: [((z >> 2) + 1, z & 3) for z in range(16) if (pc >> z) & 1]
-"""
-PIECE_SHAPE = {
-    I_PIECE: [(1, 0), (1, 1), (1, 2), (1, 3)],
-    J_PIECE: [(1, 1), (1, 2), (1, 3), (2, 1)],
-    L_PIECE: [(1, 0), (1, 1), (1, 2), (2, 2)],
-    O_PIECE: [(1, 1), (1, 2), (2, 1), (2, 2)],
-    S_PIECE: [(1, 1), (1, 2), (2, 2), (2, 3)],
-    T_PIECE: [(1, 0), (1, 1), (1, 2), (2, 1)],
-    Z_PIECE: [(1, 2), (1, 3), (2, 1), (2, 2)]
-}
-
-
-PIECE_COLOR = {
-    I_PIECE: (0, 0, 1),
-    J_PIECE: (0, 1, 1),
-    L_PIECE: (1, 0, 1),
-    O_PIECE: (1, 0.6, 0),
-    S_PIECE: (1, 0, 0),
-    T_PIECE: (0, 1, 0),
-    Z_PIECE: (1, 1, 0)
-}
-
-
-def new_piece():
-    """
-    new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
-    """
-    p = random.choice(ALL_PIECES)
-    return p, PIECE_INIT_X, PIECE_INIT_Y, PIECE_INIT_DIRECTION
-
-
 score, N, T = 0, 100, 0.5
 
 
@@ -233,8 +176,8 @@ def tick(t_stamp=[time.time(), 0]):
       if fn:
         incr_score(2 ** len(fn))
 
-      pc, px, py, pdir = new_piece()
-      ui.new_focus(pc, pdir, PIECE_COLOR[pc])
+      pc, px, py, pdir = pieces.new_piece()
+      ui.new_focus(pc, pdir)
 
     t_stamp[0] = t_stamp[1]
 
@@ -256,8 +199,8 @@ def tick(t_stamp=[time.time(), 0]):
 ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
 sound.init_sound()
 
-pc, px, py, pdir = new_piece()
-ui.new_focus(pc, pdir, PIECE_COLOR[pc])
+pc, px, py, pdir = pieces.new_piece()
+ui.new_focus(pc, pdir)
 while 1:
     ui.set_animation_rate(N)
     tick()
