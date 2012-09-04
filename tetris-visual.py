@@ -10,7 +10,8 @@
 # update: 2012.09.01 加入暫停與 hjkl 方向鍵控制 (Vim 操作練習?!)
 
 from __future__ import division
-from random import choice
+import copy
+import random
 import sound
 import time
 import ui
@@ -22,7 +23,8 @@ any = __builtins__.any
 #===============================================================================
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
-
+PIECE_INIT_X = 3
+PIECE_INIT_Y = -2
 
 #===============================================================================
 # piece
@@ -35,7 +37,33 @@ S_PIECE = 0xC6
 T_PIECE = 0x27
 Z_PIECE = 0x6C
 
-blk = {
+
+ALL_PIECES = [
+    I_PIECE,
+    J_PIECE,
+    L_PIECE,
+    O_PIECE,
+    S_PIECE,
+    T_PIECE,
+    Z_PIECE
+]
+
+
+"""
+shape = lambda pc: [((z >> 2) + 1, z & 3) for z in range(16) if (pc >> z) & 1]
+"""
+PIECE_SHAPE = {
+    I_PIECE: [(1, 0), (1, 1), (1, 2), (1, 3)],
+    J_PIECE: [(1, 1), (1, 2), (1, 3), (2, 1)],
+    L_PIECE: [(1, 0), (1, 1), (1, 2), (2, 2)],
+    O_PIECE: [(1, 1), (1, 2), (2, 1), (2, 2)],
+    S_PIECE: [(1, 1), (1, 2), (2, 2), (2, 3)],
+    T_PIECE: [(1, 0), (1, 1), (1, 2), (2, 1)],
+    Z_PIECE: [(1, 2), (1, 3), (2, 1), (2, 2)]
+}
+
+
+PIECE_COLOR = {
     I_PIECE: (0, 0, 1),
     J_PIECE: (0, 1, 1),
     L_PIECE: (1, 0, 1),
@@ -46,7 +74,14 @@ blk = {
 }
 
 
-new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
+def new_piece():
+    """
+    new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
+    """
+    p = random.choice(ALL_PIECES)
+    p_shape = copy.deepcopy(PIECE_SHAPE[p])
+    return p_shape, PIECE_INIT_X, PIECE_INIT_Y, p
+
 
 score, N, T = 0, 100, 0.5
 
@@ -194,8 +229,8 @@ def tick(t_stamp=[time.time(), 0]):
       if fn:
         incr_score(2 ** len(fn))
 
-      piece, px, py, pc = new_piece(choice(blk.keys()))
-      ui.new_focus(piece, blk[pc])
+      piece, px, py, pc = new_piece()
+      ui.new_focus(piece, PIECE_COLOR[pc])
 
     t_stamp[0] = t_stamp[1]
 
@@ -217,8 +252,8 @@ def tick(t_stamp=[time.time(), 0]):
 ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
 sound.init_sound()
 
-piece, px, py, pc = new_piece(choice(blk.keys()))
-ui.new_focus(piece, blk[pc])
+piece, px, py, pc = new_piece()
+ui.new_focus(piece, PIECE_COLOR[pc])
 while 1:
     ui.set_animation_rate(N)
     tick()
