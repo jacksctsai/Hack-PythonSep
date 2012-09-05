@@ -23,9 +23,7 @@
 #     - 更新 UI 用的 API
 #===============================================================================
 
-from __future__ import division
 import time
-any = __builtins__.any
 
 import pieces
 import sound
@@ -40,6 +38,14 @@ BOARD_HEIGHT = 20
 
 
 score, N, T = 0, 100, 0.5
+
+
+#===============================================================================
+# event
+#===============================================================================
+def piece_changed_event():
+    # 方塊位置變更
+    ui.update_focus(pc, px, py, pdir)
 
 
 #===============================================================================
@@ -137,28 +143,44 @@ def clear_complete_lines():
 #===============================================================================
 # 
 #===============================================================================
-def fall_piece():
-    global py
+def drop_piece():
+    """
     py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
+    """
+    global py
+    for j in range(py, BOARD_HEIGHT):
+        if collide(pc, px, j + 1, pdir):
+            py = j
+            break
+    piece_changed_event()
 
 
 def rotate_piece():
     global pdir
     sound.rotate_sound.play()
     npdir = (pdir + 1) % 4
-    if not collide(pc, px, py, npdir): pdir = npdir
+    if collide(pc, px, py, npdir):
+        return
+    pdir = npdir
+    piece_changed_event()
 
 
 def move_piece_left():
     global px
     npx = px - 1
-    if not collide(pc, npx, py, pdir): px = npx
+    if collide(pc, npx, py, pdir):
+        return
+    px = npx
+    piece_changed_event()
 
 
 def move_piece_right():
     global px
     npx = px + 1
-    if not collide(pc, npx, py, pdir): px = npx
+    if collide(pc, npx, py, pdir):
+        return
+    px = npx
+    piece_changed_event()
 
 
 def switch_pause():
@@ -189,10 +211,10 @@ NORMAL_ACTION_MAP = {
     # quit_game
     'q': quit_game,
     'Q': quit_game,
-    # fall_piece
-    'down': fall_piece,
-    'j': fall_piece,
-    'J': fall_piece,
+    # drop_piece
+    'down': drop_piece,
+    'j': drop_piece,
+    'J': drop_piece,
     # rotate_piece
     'up': rotate_piece,
     'k': rotate_piece,
@@ -237,6 +259,7 @@ def tick(t_stamp=[time.time(), 0]):
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
         if not collide(pc, px, py + 1, pdir): #自動落下
             py += 1
+            piece_changed_event()
 
         elif py < 0: #Game over
             game_over()
@@ -251,7 +274,7 @@ def tick(t_stamp=[time.time(), 0]):
                 incr_score(2 ** len(fn))
 
             pc, px, py, pdir = pieces.new_piece()
-            ui.new_focus(pc, pdir)
+            ui.new_focus(pc, px, py, pdir)
 
         t_stamp[0] = t_stamp[1]
 
@@ -264,16 +287,13 @@ def tick(t_stamp=[time.time(), 0]):
         act_func = get_action(key, action_map)
         act_func()
 
-    # 方塊位置變更
-    ui.update_focus(pc, px, py, pdir)
-
 
 if __name__ == '__main__':
     ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
     sound.init_sound()
 
     pc, px, py, pdir = pieces.new_piece()
-    ui.new_focus(pc, pdir)
+    ui.new_focus(pc, px, py, pdir)
 
     while 1: # mainloop
         ui.set_animation_rate(N)
