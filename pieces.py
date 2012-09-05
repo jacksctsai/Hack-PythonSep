@@ -7,13 +7,13 @@ PIECE_INIT_Y = -2
 PIECE_INIT_DIRECTION = 0
 
 
-I_PIECE = 0x0f
-J_PIECE = 0x2e
-L_PIECE = 0x47
-O_PIECE = 0x66
-S_PIECE = 0xC6
-T_PIECE = 0x27
-Z_PIECE = 0x6C
+I_PIECE = 'I' # 0x0f
+J_PIECE = 'J' # 0x2e
+L_PIECE = 'L' # 0x47
+O_PIECE = 'O' # 0x66
+S_PIECE = 'S' # 0xC6
+T_PIECE = 'T' # 0x27
+Z_PIECE = 'Z' # 0x6C
 
 
 ALL_PIECES = [
