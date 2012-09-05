@@ -230,42 +230,42 @@ def get_action(key, action_map):
 # tick
 #===============================================================================
 def tick(t_stamp=[time.time(), 0]):
-  global pc, px, py, pdir
+    global pc, px, py, pdir
 
-  # 自動處理
-  t_stamp[1] = time.time()
-  if t_stamp[1] - t_stamp[0] > T and not is_pause():
-    if not collide(pc, px, py + 1, pdir): #自動落下
-      py += 1
+    # 自動處理
+    t_stamp[1] = time.time()
+    if t_stamp[1] - t_stamp[0] > T and not is_pause():
+        if not collide(pc, px, py + 1, pdir): #自動落下
+            py += 1
 
-    elif py < 0: #Game over
-      game_over()
-      return
+        elif py < 0: #Game over
+            game_over()
+            return
 
-    else:  #到底
-      place_piece(pc, px, py, pdir)
+        else:  #到底
+            place_piece(pc, px, py, pdir)
 
-      # 檢查消去
-      fn = clear_complete_lines()
-      if fn:
-        incr_score(2 ** len(fn))
+            # 檢查消去
+            fn = clear_complete_lines()
+            if fn:
+                incr_score(2 ** len(fn))
 
-      pc, px, py, pdir = pieces.new_piece()
-      ui.new_focus(pc, pdir)
+            pc, px, py, pdir = pieces.new_piece()
+            ui.new_focus(pc, pdir)
 
-    t_stamp[0] = t_stamp[1]
+        t_stamp[0] = t_stamp[1]
 
-  key = ui.get_key()
-  if key:
-    if is_pause():
-      action_map = PAUSE_ACTION_MAP
-    else:
-      action_map = NORMAL_ACTION_MAP
-    act_func = get_action(key, action_map)
-    act_func()
+    key = ui.get_key()
+    if key:
+        if is_pause():
+            action_map = PAUSE_ACTION_MAP
+        else:
+            action_map = NORMAL_ACTION_MAP
+        act_func = get_action(key, action_map)
+        act_func()
 
-  # 方塊位置變更
-  ui.update_focus(pc, px, py, pdir)
+    # 方塊位置變更
+    ui.update_focus(pc, px, py, pdir)
 
 
 if __name__ == '__main__':
