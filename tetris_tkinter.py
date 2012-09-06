@@ -286,7 +286,7 @@ def game_over():
 #===============================================================================
 # tick
 #===============================================================================
-def tick(e=None):
+def handle_event(e=None):
     global py
 
     keys = e.keysym if e else  "" # get key event
@@ -321,7 +321,13 @@ def tick(e=None):
         if s:
             incr_score(2 ** s)
 
-        scr.after(300, tick)
+
+#===============================================================================
+# tick
+#===============================================================================
+def tick():
+    handle_event()
+    scr.after(300, tick)
 
 
 #===============================================================================
@@ -346,7 +352,7 @@ def init_tetris():
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
     init_ui(scr, board, pc, px, py, pdir)
     scr.after(300, tick)
-    scr.bind_all("<Key>", tick)
+    scr.bind_all("<Key>", handle_event)
     scr.pack()
     scr.mainloop()
 
