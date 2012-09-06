@@ -19,6 +19,14 @@ PIECE_INIT_Y = -2
 
 BACKGROUND_COLOR = '#000'
 
+
+#===============================================================================
+# event
+#===============================================================================
+def piece_changed_event():
+    redraw_piece(pc, px, py, pdir)
+
+
 #===============================================================================
 # action
 #===============================================================================
@@ -38,6 +46,7 @@ def move_piece_left():
     if collide(pc, npx, py, pdir):
         return
     px = npx
+    piece_changed_event()
 
 
 def move_piece_right():
@@ -46,6 +55,7 @@ def move_piece_right():
     if collide(pc, npx, py, pdir):
         return
     px = npx
+    piece_changed_event()
 
 
 def rotate_piece():
@@ -54,6 +64,7 @@ def rotate_piece():
     if collide(pc, px, py, npdir):
         return
     pdir = npdir
+    piece_changed_event()
 
 
 def drop_piece():
@@ -62,6 +73,7 @@ def drop_piece():
         if collide(pc, px, j + 1, pdir):
             py = j
             break
+    piece_changed_event()
 
 
 #===============================================================================
@@ -96,54 +108,76 @@ def ui_create_rect(i, j, color):
     return scr.create_rectangle(x0, y0, x1, y1, fill=color)
 
 
+UI_RECT_ID = []
+def ui_change_rect_color(i, j, color):
+    rect_id = UI_RECT_ID[j][i]
+    scr.itemconfig(rect_id, fill=color)
+
+
 UI_BOARD = []
 UI_PIECE = []
-UI_RECT_ID = []
 def init_ui(scr, board, pc, px, py, pdir):
     global UI_BOARD, UI_RECT_ID, UI_PIECE
     UI_BOARD = copy.deepcopy(board)
     UI_PIECE = [pc, px, py, pdir]
 
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    piece_region = [(i + px, j + py) for i, j in p_shape]
+
     UI_RECT_ID = []
     for j in range(BOARD_HEIGHT):
         id_list = []
         for i in range(BOARD_WIDTH):
-            rect_id = ui_create_rect(i, j, BACKGROUND_COLOR)
+            if (i, j) in piece_region:
+                color = PIECE_COLOR[pc]
+            else:
+                color = BACKGROUND_COLOR
+            rect_id = ui_create_rect(i, j, color)
             id_list.append(rect_id)
         UI_RECT_ID.append(id_list)
 
 
-def redraw_ui(board, pc, px, py, pdir):
-    piece_changed = False
-    if pc != UI_PIECE[0]:
-        UI_PIECE[0] = pc
-        piece_changed = True
-    if px != UI_PIECE[1]:
-        UI_PIECE[1] = px
-        piece_changed = True
-    if py != UI_PIECE[2]:
-        UI_PIECE[2] = py
-        piece_changed = True
-    if pdir != UI_PIECE[3]:
-        UI_PIECE[3] = pdir
-        piece_changed = True
-
+def redraw_board(board):
+    pc, px, py, pdir = UI_PIECE
     p_shape = pieces.get_piece_shape(pc, pdir)
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
     for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
-        if (i, j) in piece_region: # display piece color
-            if not piece_changed:
-                continue
-            UI_BOARD[j][i] = pc
+        if (i, j) in piece_region: # ignore piece region
+            continue
+        if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
+            continue
+        UI_BOARD[j][i] = board[j][i]
+        color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
+        ui_change_rect_color(i, j, color)
+
+
+def redraw_piece(pc, px, py, pdir):
+    global UI_PIECE
+    opc, opx, opy, opdir = UI_PIECE
+    old_shape = pieces.get_piece_shape(opc, opdir)
+    new_shape = pieces.get_piece_shape(pc, pdir)
+    old_region = set([(i + opx, j + opy) for i, j in old_shape])
+    new_region = set([(i + px, j + py) for i, j in new_shape])
+
+    if pc == opc:
+        change_region = old_region ^ new_region
+    else:
+        change_region = old_region | new_region
+
+    for i, j in change_region:
+        if not (0 <= i < BOARD_WIDTH):
+            continue
+        if not (0 <= j < BOARD_HEIGHT):
+            continue
+        if (i, j) in new_region:
             color = PIECE_COLOR[pc]
-        else: # display board color
-            if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
-                continue
-            UI_BOARD[j][i] = board[j][i]
-            color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
-        rect_id = UI_RECT_ID[j][i]
-        scr.itemconfig(rect_id, fill=color)
+        else:
+            color = PIECE_COLOR.get(UI_BOARD[j][i], BACKGROUND_COLOR)
+
+        ui_change_rect_color(i, j, color)
+
+    UI_PIECE = [pc, px, py, pdir]
 
 
 #===============================================================================
@@ -260,18 +294,20 @@ def tick(e=None):
         return
 
     if e == None:
-        if collide(pc, px, py + 1, pdir):
-            if py < 0:
-                game_over()
-                return
+        if not collide(pc, px, py + 1, pdir):
+            py += 1
+            piece_changed_event()
 
+        elif py < 0:
+            game_over()
+            return
+
+        else:
             place_piece(pc, px, py, pdir)
 
             pc, px, py, pdir = pieces.new_piece()
             px, py = PIECE_INIT_X, PIECE_INIT_Y
-
-        else:
-            py += 1
+            piece_changed_event()
 
         s = clear_complete_lines()
         if s:
@@ -279,7 +315,7 @@ def tick(e=None):
 
         scr.after(300, tick)
 
-    redraw_ui(board, pc, px, py, pdir)
+    redraw_board(board)
 
 
 #===============================================================================
