@@ -15,7 +15,7 @@ UNIT_X = 30
 UNIT_Y = 30
 
 PIECE_INIT_X = 3
-PIECE_INIT_Y = -2
+PIECE_INIT_Y = -3
 
 BACKGROUND_COLOR = '#000'
 
@@ -25,6 +25,10 @@ BACKGROUND_COLOR = '#000'
 #===============================================================================
 def piece_changed_event():
     redraw_piece(pc, px, py, pdir)
+
+
+def board_changed_event():
+    redraw_board(board)
 
 
 #===============================================================================
@@ -233,11 +237,12 @@ def new_board_lines(num):
 board = new_board_lines(BOARD_HEIGHT)
 
 
-def place_piece(pc, px, py, pdir):
+def place_piece():
     """
     for i, j in piece:
         board[j + py][i + px] = pc
     """
+    global pc, px, py, pdir
     p_shape = pieces.get_piece_shape(pc, pdir)
     for i, j in p_shape:
         x = px + i
@@ -248,6 +253,12 @@ def place_piece(pc, px, py, pdir):
             continue
         board[y][x] = pc
 
+    pc, px, py, pdir = pieces.new_piece()
+    px, py = PIECE_INIT_X, PIECE_INIT_Y
+
+    piece_changed_event()
+    board_changed_event()
+
 
 def clear_complete_lines():
     global board
@@ -255,6 +266,7 @@ def clear_complete_lines():
     s = len(board) - len(nb)
     if s:
         board = new_board_lines(s) + nb
+        board_changed_event()
     return s
 
 
@@ -275,7 +287,7 @@ def game_over():
 # tick
 #===============================================================================
 def tick(e=None):
-    global px, py, pc, pdir
+    global py
 
     keys = e.keysym if e else  "" # get key event
 
@@ -293,7 +305,7 @@ def tick(e=None):
     if pause:
         return
 
-    if e == None:
+    if e is None:
         if not collide(pc, px, py + 1, pdir):
             py += 1
             piece_changed_event()
@@ -303,19 +315,13 @@ def tick(e=None):
             return
 
         else:
-            place_piece(pc, px, py, pdir)
-
-            pc, px, py, pdir = pieces.new_piece()
-            px, py = PIECE_INIT_X, PIECE_INIT_Y
-            piece_changed_event()
+            place_piece()
 
         s = clear_complete_lines()
         if s:
             incr_score(2 ** s)
 
         scr.after(300, tick)
-
-    redraw_board(board)
 
 
 #===============================================================================
