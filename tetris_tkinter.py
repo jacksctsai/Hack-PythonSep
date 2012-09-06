@@ -1,8 +1,8 @@
 ﻿# -*- coding: utf-8 -*-
-import copy
-import random
 import sys
 import Tkinter
+
+import pieces
 
 #===============================================================================
 # global constant
@@ -19,57 +19,7 @@ PIECE_INIT_Y = -2
 BACKGROUND_COLOR = '#000'
 
 #===============================================================================
-# piece
-#===============================================================================
-I_PIECE = 0xf
-J_PIECE = 0x2e
-L_PIECE = 0x47
-O_PIECE = 0x66
-S_PIECE = 0xC6
-T_PIECE = 0x27
-Z_PIECE = 0x6C
-
-ALL_PIECES = [
-    I_PIECE,
-    J_PIECE,
-    L_PIECE,
-    O_PIECE,
-    S_PIECE,
-    T_PIECE,
-    Z_PIECE
-]
-
-PIECE_COLOR = {
-    I_PIECE: "red",
-    J_PIECE: "#0f0",
-    L_PIECE: "#ff0",
-    O_PIECE: "#0ff",
-    S_PIECE: "#38f",
-    T_PIECE: "blue",
-    Z_PIECE: "#f0f"
-}
-
-"""
-shape = lambda pc: [((z >> 2) + 1, z & 3) for z in range(16) if (pc >> z) & 1]
-"""
-PIECE_SHAPE = {
-    I_PIECE: [(1, 0), (1, 1), (1, 2), (1, 3)],
-    J_PIECE: [(1, 1), (1, 2), (1, 3), (2, 1)],
-    L_PIECE: [(1, 0), (1, 1), (1, 2), (2, 2)],
-    O_PIECE: [(1, 1), (1, 2), (2, 1), (2, 2)],
-    S_PIECE: [(1, 1), (1, 2), (2, 2), (2, 3)],
-    T_PIECE: [(1, 0), (1, 1), (1, 2), (2, 1)],
-    Z_PIECE: [(1, 2), (1, 3), (2, 1), (2, 2)]
-}
-
-def new_piece():
-    p = random.choice(ALL_PIECES)
-    p_shape = copy.deepcopy(PIECE_SHAPE[p])
-    return p_shape, p
-
-
-#===============================================================================
-# piece : action
+# action
 #===============================================================================
 """
     npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
@@ -84,35 +34,49 @@ def new_piece():
 def move_piece_left():
     global px
     npx = px - 1
-    if not collide(piece, npx, py):
-        px = npx
+    if collide(pc, npx, py, pdir):
+        return
+    px = npx
 
 
 def move_piece_right():
     global px
     npx = px + 1
-    if not collide(piece, npx, py):
-        px = npx
+    if collide(pc, npx, py, pdir):
+        return
+    px = npx
 
 
 def rotate_piece():
-    global piece
-    npiece = [(j, 3 - i) for (i, j) in piece]
-    if not collide(npiece, px, py):
-        piece = npiece
+    global pdir
+    npdir = (pdir + 1) % 4
+    if collide(pc, px, py, npdir):
+        return
+    pdir = npdir
 
 
-def fall_piece():
+def drop_piece():
     global py
     for j in range(py, BOARD_HEIGHT):
-        py = j
-        if collide(piece, px, j + 1):
-            return
+        if collide(pc, px, j + 1, pdir):
+            py = j
+            break
 
 
 #===============================================================================
-# drawing transform
+# ui
 #===============================================================================
+PIECE_COLOR = {
+    pieces.I_PIECE: "red",
+    pieces.J_PIECE: "#0f0",
+    pieces.L_PIECE: "#ff0",
+    pieces.O_PIECE: "#0ff",
+    pieces.S_PIECE: "#38f",
+    pieces.T_PIECE: "blue",
+    pieces.Z_PIECE: "#f0f"
+}
+
+
 def map_to_ui_x(i):
     return i * UNIT_X
 
@@ -131,8 +95,9 @@ def ui_create_rect(i, j, color):
     scr.create_rectangle(x0, y0, x1, y1, fill=color)
 
 
-def redraw_ui():
-    piece_region = [(i + px, j + py) for i, j in piece]
+def redraw_ui(board, pc, px, py, pdir):
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    piece_region = [(i + px, j + py) for i, j in p_shape]
 
     scr.delete("all")
     for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
@@ -167,10 +132,11 @@ def incr_score(value):
 """
 collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
 """
-def collide(piece, px, py):
+def collide(pc, px, py, pdir):
     assert isinstance(px, int), px
     assert isinstance(py, int), py
-    for (i, j) in piece:
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    for (i, j) in p_shape:
         x = px + i
         y = py + j
         if not (0 <= x < BOARD_WIDTH):
@@ -189,18 +155,19 @@ def collide(piece, px, py):
 #===============================================================================
 def new_board_lines(num):
     assert isinstance(num, int), num
-    return [[0] * BOARD_WIDTH for j in range(num)]
+    return [[0] * BOARD_WIDTH for _ in range(num)]
 
 
 board = new_board_lines(BOARD_HEIGHT)
 
 
-def place_piece(piece, px, py, pc):
+def place_piece(pc, px, py, pdir):
     """
     for i, j in piece:
         board[j + py][i + px] = pc
     """
-    for i, j in piece:
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    for i, j in p_shape:
         x = px + i
         y = py + j
         if not (0 <= x < BOARD_WIDTH):
@@ -236,7 +203,7 @@ def game_over():
 # tick
 #===============================================================================
 def tick(e=None):
-    global piece, px, py, pc, pause
+    global px, py, pc, pdir
 
     keys = e.keysym if e else  "" # get key event
 
@@ -249,20 +216,20 @@ def tick(e=None):
     elif keys in ['Up', 'k', 'K']:
         rotate_piece()
     elif keys in ['Down', 'j', 'J']:
-        fall_piece()
+        drop_piece()
 
     if pause:
         return
 
     if e == None:
-        if collide(piece, px, py + 1):
+        if collide(pc, px, py + 1, pdir):
             if py < 0:
                 game_over()
                 return
 
-            place_piece(piece, px, py, pc)
+            place_piece(pc, px, py, pdir)
 
-            piece, pc = new_piece()
+            pc, px, py, pdir = pieces.new_piece()
             px, py = PIECE_INIT_X, PIECE_INIT_Y
 
         else:
@@ -274,7 +241,7 @@ def tick(e=None):
 
         scr.after(300, tick)
 
-    redraw_ui()
+    redraw_ui(board, pc, px, py, pdir)
 
 
 #===============================================================================
@@ -285,14 +252,15 @@ piece = None
 pc = None
 px = PIECE_INIT_X
 py = PIECE_INIT_Y
+pdir = 0
 score = 0
 pause = False
 scr = None
 
 def init_tetris():
-    global board, piece, pc, scr
+    global board, pc, px, py, pdir, scr
     board = new_board_lines(BOARD_HEIGHT)
-    piece, pc = new_piece() # 第一個piece
+    pc, px, py, pdir = pieces.new_piece() # 第一個piece
     reset_score()
 
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
