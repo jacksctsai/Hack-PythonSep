@@ -15,9 +15,21 @@ UNIT_X = 30
 UNIT_Y = 30
 
 PIECE_INIT_X = 3
-PIECE_INIT_Y = -2
+PIECE_INIT_Y = -3
 
 BACKGROUND_COLOR = '#000'
+
+
+#===============================================================================
+# event
+#===============================================================================
+def piece_changed_event():
+    redraw_piece(pc, px, py, pdir)
+
+
+def board_changed_event():
+    redraw_board(board)
+
 
 #===============================================================================
 # action
@@ -38,6 +50,7 @@ def move_piece_left():
     if collide(pc, npx, py, pdir):
         return
     px = npx
+    piece_changed_event()
 
 
 def move_piece_right():
@@ -46,6 +59,7 @@ def move_piece_right():
     if collide(pc, npx, py, pdir):
         return
     px = npx
+    piece_changed_event()
 
 
 def rotate_piece():
@@ -54,6 +68,7 @@ def rotate_piece():
     if collide(pc, px, py, npdir):
         return
     pdir = npdir
+    piece_changed_event()
 
 
 def drop_piece():
@@ -62,6 +77,7 @@ def drop_piece():
         if collide(pc, px, j + 1, pdir):
             py = j
             break
+    piece_changed_event()
 
 
 #===============================================================================
@@ -96,36 +112,76 @@ def ui_create_rect(i, j, color):
     return scr.create_rectangle(x0, y0, x1, y1, fill=color)
 
 
-UI_BOARD = []
 UI_RECT_ID = []
-def init_ui(scr, board):
-    global UI_BOARD, UI_RECT_ID
+def ui_change_rect_color(i, j, color):
+    rect_id = UI_RECT_ID[j][i]
+    scr.itemconfig(rect_id, fill=color)
+
+
+UI_BOARD = []
+UI_PIECE = []
+def init_ui(scr, board, pc, px, py, pdir):
+    global UI_BOARD, UI_RECT_ID, UI_PIECE
     UI_BOARD = copy.deepcopy(board)
+    UI_PIECE = [pc, px, py, pdir]
+
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    piece_region = [(i + px, j + py) for i, j in p_shape]
 
     UI_RECT_ID = []
     for j in range(BOARD_HEIGHT):
         id_list = []
         for i in range(BOARD_WIDTH):
-            rect_id = ui_create_rect(i, j, BACKGROUND_COLOR)
+            if (i, j) in piece_region:
+                color = PIECE_COLOR[pc]
+            else:
+                color = BACKGROUND_COLOR
+            rect_id = ui_create_rect(i, j, color)
             id_list.append(rect_id)
         UI_RECT_ID.append(id_list)
 
 
-def redraw_ui(board, pc, px, py, pdir):
+def redraw_board(board):
+    pc, px, py, pdir = UI_PIECE
     p_shape = pieces.get_piece_shape(pc, pdir)
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
     for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
-        if (i, j) in piece_region: # display piece color
-            UI_BOARD[j][i] = pc
+        if (i, j) in piece_region: # ignore piece region
+            continue
+        if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
+            continue
+        UI_BOARD[j][i] = board[j][i]
+        color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
+        ui_change_rect_color(i, j, color)
+
+
+def redraw_piece(pc, px, py, pdir):
+    global UI_PIECE
+    opc, opx, opy, opdir = UI_PIECE
+    old_shape = pieces.get_piece_shape(opc, opdir)
+    new_shape = pieces.get_piece_shape(pc, pdir)
+    old_region = set([(i + opx, j + opy) for i, j in old_shape])
+    new_region = set([(i + px, j + py) for i, j in new_shape])
+
+    if pc == opc:
+        change_region = old_region ^ new_region
+    else:
+        change_region = old_region | new_region
+
+    for i, j in change_region:
+        if not (0 <= i < BOARD_WIDTH):
+            continue
+        if not (0 <= j < BOARD_HEIGHT):
+            continue
+        if (i, j) in new_region:
             color = PIECE_COLOR[pc]
-        else: # display board color
-            if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
-                continue
-            UI_BOARD[j][i] = board[j][i]
-            color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
-        rect_id = UI_RECT_ID[j][i]
-        scr.itemconfig(rect_id, fill=color)
+        else:
+            color = PIECE_COLOR.get(UI_BOARD[j][i], BACKGROUND_COLOR)
+
+        ui_change_rect_color(i, j, color)
+
+    UI_PIECE = [pc, px, py, pdir]
 
 
 #===============================================================================
@@ -181,11 +237,12 @@ def new_board_lines(num):
 board = new_board_lines(BOARD_HEIGHT)
 
 
-def place_piece(pc, px, py, pdir):
+def place_piece():
     """
     for i, j in piece:
         board[j + py][i + px] = pc
     """
+    global pc, px, py, pdir
     p_shape = pieces.get_piece_shape(pc, pdir)
     for i, j in p_shape:
         x = px + i
@@ -196,6 +253,12 @@ def place_piece(pc, px, py, pdir):
             continue
         board[y][x] = pc
 
+    pc, px, py, pdir = pieces.new_piece()
+    px, py = PIECE_INIT_X, PIECE_INIT_Y
+
+    piece_changed_event()
+    board_changed_event()
+
 
 def clear_complete_lines():
     global board
@@ -203,6 +266,7 @@ def clear_complete_lines():
     s = len(board) - len(nb)
     if s:
         board = new_board_lines(s) + nb
+        board_changed_event()
     return s
 
 
@@ -210,58 +274,99 @@ def clear_complete_lines():
 # 
 #===============================================================================
 def switch_pause():
-    global pause
+    global pause, valid_keys
     assert isinstance(pause, bool), pause
     pause = (not pause)
+    valid_keys = PAUSE_KEYS
 
 
 def game_over():
-    sys.exit("GAME OVER: score %i" % get_score()) # game over 的狀況
+    print "GAME OVER: score %i" % get_score() # game over 的狀況
+    quit_game()
+
+
+def quit_game():
+    exit()
+
+
+#===============================================================================
+# 鍵盤控制
+#===============================================================================
+KEY_ACTION_MAP = {
+    # switch_pause
+    'p': switch_pause,
+    # quit_game
+    'q': quit_game,
+    # drop_piece
+    'down': drop_piece,
+    'j': drop_piece,
+    # rotate_piece
+    'up': rotate_piece,
+    'k': rotate_piece,
+    # move_piece_left
+    'left': move_piece_left,
+    'h': move_piece_left,
+    # move_piece_right
+    'right': move_piece_right,
+    'l': move_piece_right,
+}
+
+
+NORMAL_KEYS = set(['p', 'q',
+                   'down', 'j',
+                   'up', 'k',
+                   'left', 'h',
+                   'right', 'l'])
+
+
+PAUSE_KEYS = set(['p', 'q'])
+
+
+def perform_key_action(key):
+    lkey = key.lower()
+    if lkey not in valid_keys:
+        return
+    act_func = KEY_ACTION_MAP[lkey]
+    act_func()
 
 
 #===============================================================================
 # tick
 #===============================================================================
-def tick(e=None):
-    global px, py, pc, pdir
+def handle_event(e=None):
+    global py
 
-    keys = e.keysym if e else  "" # get key event
-
-    if keys in ['p', 'P']:
-        switch_pause()
-    elif keys in ['Left', 'h', 'H']:
-        move_piece_left()
-    elif keys in ['Right', 'l', 'L']:
-        move_piece_right()
-    elif keys in ['Up', 'k', 'K']:
-        rotate_piece()
-    elif keys in ['Down', 'j', 'J']:
-        drop_piece()
+    if e:
+        key = e.keysym # get key event
+        perform_key_action(key)
+        return
 
     if pause:
         return
 
-    if e == None:
-        if collide(pc, px, py + 1, pdir):
-            if py < 0:
-                game_over()
-                return
+    if not collide(pc, px, py + 1, pdir):
+        py += 1
+        piece_changed_event()
+        return
 
-            place_piece(pc, px, py, pdir)
+    if py < 0:
+        game_over()
+        return
 
-            pc, px, py, pdir = pieces.new_piece()
-            px, py = PIECE_INIT_X, PIECE_INIT_Y
+    place_piece()
+    s = clear_complete_lines()
+    if s:
+        incr_score(2 ** s)
 
-        else:
-            py += 1
 
-        s = clear_complete_lines()
-        if s:
-            incr_score(2 ** s)
 
-        scr.after(300, tick)
 
-    redraw_ui(board, pc, px, py, pdir)
+#===============================================================================
+# tick
+#===============================================================================
+def tick():
+    handle_event()
+    scr.after(300, tick)
 
 
 #===============================================================================
@@ -274,6 +379,7 @@ px = PIECE_INIT_X
 py = PIECE_INIT_Y
 pdir = 0
 score = 0
+valid_keys = NORMAL_KEYS
 pause = False
 scr = None
 
@@ -284,9 +390,9 @@ def init_tetris():
     reset_score()
 
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
-    init_ui(scr, board)
+    init_ui(scr, board, pc, px, py, pdir)
     scr.after(300, tick)
-    scr.bind_all("<Key>", tick)
+    scr.bind_all("<Key>", handle_event)
     scr.pack()
     scr.mainloop()
 
