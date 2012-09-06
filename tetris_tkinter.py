@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+import copy
 import sys
 import Tkinter
 
@@ -92,20 +93,39 @@ def ui_create_rect(i, j, color):
     y0 = map_to_ui_y(j)
     x1 = map_to_ui_x(i + 1)
     y1 = map_to_ui_y(j + 1)
-    scr.create_rectangle(x0, y0, x1, y1, fill=color)
+    return scr.create_rectangle(x0, y0, x1, y1, fill=color)
+
+
+UI_BOARD = []
+UI_RECT_ID = []
+def init_ui(scr, board):
+    global UI_BOARD, UI_RECT_ID
+    UI_BOARD = copy.deepcopy(board)
+
+    UI_RECT_ID = []
+    for j in range(BOARD_HEIGHT):
+        id_list = []
+        for i in range(BOARD_WIDTH):
+            rect_id = ui_create_rect(i, j, BACKGROUND_COLOR)
+            id_list.append(rect_id)
+        UI_RECT_ID.append(id_list)
 
 
 def redraw_ui(board, pc, px, py, pdir):
     p_shape = pieces.get_piece_shape(pc, pdir)
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
-    scr.delete("all")
     for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
-        if (i, j) in piece_region:
+        if (i, j) in piece_region: # display piece color
+            UI_BOARD[j][i] = pc
             color = PIECE_COLOR[pc]
-        else:
+        else: # display board color
+            if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
+                continue
+            UI_BOARD[j][i] = board[j][i]
             color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
-        ui_create_rect(i, j, color)
+        rect_id = UI_RECT_ID[j][i]
+        scr.itemconfig(rect_id, fill=color)
 
 
 #===============================================================================
@@ -264,6 +284,7 @@ def init_tetris():
     reset_score()
 
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
+    init_ui(scr, board)
     scr.after(300, tick)
     scr.bind_all("<Key>", tick)
     scr.pack()
