@@ -97,10 +97,12 @@ def ui_create_rect(i, j, color):
 
 
 UI_BOARD = []
+UI_PIECE = []
 UI_RECT_ID = []
-def init_ui(scr, board):
-    global UI_BOARD, UI_RECT_ID
+def init_ui(scr, board, pc, px, py, pdir):
+    global UI_BOARD, UI_RECT_ID, UI_PIECE
     UI_BOARD = copy.deepcopy(board)
+    UI_PIECE = [pc, px, py, pdir]
 
     UI_RECT_ID = []
     for j in range(BOARD_HEIGHT):
@@ -112,11 +114,27 @@ def init_ui(scr, board):
 
 
 def redraw_ui(board, pc, px, py, pdir):
+    piece_changed = False
+    if pc != UI_PIECE[0]:
+        UI_PIECE[0] = pc
+        piece_changed = True
+    if px != UI_PIECE[1]:
+        UI_PIECE[1] = px
+        piece_changed = True
+    if py != UI_PIECE[2]:
+        UI_PIECE[2] = py
+        piece_changed = True
+    if pdir != UI_PIECE[3]:
+        UI_PIECE[3] = pdir
+        piece_changed = True
+
     p_shape = pieces.get_piece_shape(pc, pdir)
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
     for i, j in [(i, j) for i in range(BOARD_WIDTH) for j in range(BOARD_HEIGHT)]:
         if (i, j) in piece_region: # display piece color
+            if not piece_changed:
+                continue
             UI_BOARD[j][i] = pc
             color = PIECE_COLOR[pc]
         else: # display board color
@@ -284,7 +302,7 @@ def init_tetris():
     reset_score()
 
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
-    init_ui(scr, board)
+    init_ui(scr, board, pc, px, py, pdir)
     scr.after(300, tick)
     scr.bind_all("<Key>", tick)
     scr.pack()
