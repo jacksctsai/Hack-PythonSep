@@ -274,13 +274,60 @@ def clear_complete_lines():
 # 
 #===============================================================================
 def switch_pause():
-    global pause
+    global pause, valid_keys
     assert isinstance(pause, bool), pause
     pause = (not pause)
+    valid_keys = PAUSE_KEYS
 
 
 def game_over():
-    sys.exit("GAME OVER: score %i" % get_score()) # game over 的狀況
+    print "GAME OVER: score %i" % get_score() # game over 的狀況
+    quit_game()
+
+
+def quit_game():
+    exit()
+
+
+#===============================================================================
+# 鍵盤控制
+#===============================================================================
+KEY_ACTION_MAP = {
+    # switch_pause
+    'p': switch_pause,
+    # quit_game
+    'q': quit_game,
+    # drop_piece
+    'down': drop_piece,
+    'j': drop_piece,
+    # rotate_piece
+    'up': rotate_piece,
+    'k': rotate_piece,
+    # move_piece_left
+    'left': move_piece_left,
+    'h': move_piece_left,
+    # move_piece_right
+    'right': move_piece_right,
+    'l': move_piece_right,
+}
+
+
+NORMAL_KEYS = set(['p', 'q',
+                   'down', 'j',
+                   'up', 'k',
+                   'left', 'h',
+                   'right', 'l'])
+
+
+PAUSE_KEYS = set(['p', 'q'])
+
+
+def perform_key_action(key):
+    lkey = key.lower()
+    if lkey not in valid_keys:
+        return
+    act_func = KEY_ACTION_MAP[lkey]
+    act_func()
 
 
 #===============================================================================
@@ -289,37 +336,29 @@ def game_over():
 def handle_event(e=None):
     global py
 
-    keys = e.keysym if e else  "" # get key event
-
-    if keys in ['p', 'P']:
-        switch_pause()
-    elif keys in ['Left', 'h', 'H']:
-        move_piece_left()
-    elif keys in ['Right', 'l', 'L']:
-        move_piece_right()
-    elif keys in ['Up', 'k', 'K']:
-        rotate_piece()
-    elif keys in ['Down', 'j', 'J']:
-        drop_piece()
+    if e:
+        key = e.keysym # get key event
+        perform_key_action(key)
+        return
 
     if pause:
         return
 
-    if e is None:
-        if not collide(pc, px, py + 1, pdir):
-            py += 1
-            piece_changed_event()
+    if not collide(pc, px, py + 1, pdir):
+        py += 1
+        piece_changed_event()
+        return
 
-        elif py < 0:
-            game_over()
-            return
+    if py < 0:
+        game_over()
+        return
 
-        else:
-            place_piece()
+    place_piece()
+    s = clear_complete_lines()
+    if s:
+        incr_score(2 ** s)
 
-        s = clear_complete_lines()
-        if s:
-            incr_score(2 ** s)
+
 
 
 #===============================================================================
@@ -340,6 +379,7 @@ px = PIECE_INIT_X
 py = PIECE_INIT_Y
 pdir = 0
 score = 0
+valid_keys = NORMAL_KEYS
 pause = False
 scr = None
 
