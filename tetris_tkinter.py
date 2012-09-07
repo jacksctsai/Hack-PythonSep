@@ -8,9 +8,6 @@ import ui_tkinter
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 
-PIECE_INIT_X = 3
-PIECE_INIT_Y = -3
-
 
 #===============================================================================
 # event
@@ -137,7 +134,6 @@ def place_piece():
         board[y][x] = pc
 
     pc, px, py, pdir = pieces.new_piece()
-    px, py = PIECE_INIT_X, PIECE_INIT_Y
 
     piece_changed_event()
     board_changed_event()

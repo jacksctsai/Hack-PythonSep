@@ -3,7 +3,7 @@ import random
 
 
 PIECE_INIT_X = 3
-PIECE_INIT_Y = -2
+PIECE_INIT_Y = -3
 PIECE_INIT_DIRECTION = 0
 
 
@@ -38,7 +38,8 @@ PIECE_SHAPE = {
     O_PIECE: [(1, 1), (1, 2), (2, 1), (2, 2)],
     S_PIECE: [(1, 1), (1, 2), (2, 2), (2, 3)],
     T_PIECE: [(1, 0), (1, 1), (1, 2), (2, 1)],
-    Z_PIECE: [(1, 2), (1, 3), (2, 1), (2, 2)]
+    Z_PIECE: [(1, 2), (1, 3), (2, 1), (2, 2)],
+    EMPTY: []
 }
 
 

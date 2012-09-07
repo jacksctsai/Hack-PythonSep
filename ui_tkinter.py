@@ -82,7 +82,9 @@ EVENT_CALLBACK = lambda *args, **kwargs: None
 
 TICK_PERIOD = 300
 def tick():
-    EVENT_CALLBACK()
+    more_event = True
+    while more_event:
+        more_event = EVENT_CALLBACK()
     scr.after(300, tick)
 
 
