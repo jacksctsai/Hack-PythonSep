@@ -14,6 +14,7 @@ O_PIECE = 'O' # 0x66
 S_PIECE = 'S' # 0xC6
 T_PIECE = 'T' # 0x27
 Z_PIECE = 'Z' # 0x6C
+EMPTY = '_'
 
 
 ALL_PIECES = [
