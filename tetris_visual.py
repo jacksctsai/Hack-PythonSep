@@ -36,6 +36,7 @@ import ui
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 
+EMPTY = ''
 
 score, N, T = 0, 100, 0.5
 
@@ -96,7 +97,7 @@ def collide(pc, px, py, pdir):
 #===============================================================================
 def new_board_lines(num):
     assert isinstance(num, int), num
-    return [[0] * BOARD_WIDTH for _ in range(num)]
+    return [[EMPTY] * BOARD_WIDTH for _ in range(num)]
 
 
 board = new_board_lines(BOARD_HEIGHT)
@@ -124,7 +125,7 @@ def clear_complete_lines():
     nb = []
     fn = []
     for j, line in enumerate(board):
-        if 0 in line:
+        if EMPTY in line:
             nb.append(line)
         else:
             fn.append(j)

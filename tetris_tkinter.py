@@ -1,6 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
 import copy
-import sys
 import Tkinter
 
 import pieces
@@ -17,6 +16,7 @@ UNIT_Y = 30
 PIECE_INIT_X = 3
 PIECE_INIT_Y = -3
 
+EMPTY = ''
 BACKGROUND_COLOR = '#000'
 
 
@@ -90,7 +90,8 @@ PIECE_COLOR = {
     pieces.O_PIECE: "#0ff",
     pieces.S_PIECE: "#38f",
     pieces.T_PIECE: "blue",
-    pieces.Z_PIECE: "#f0f"
+    pieces.Z_PIECE: "#f0f",
+    EMPTY: BACKGROUND_COLOR
 }
 
 
@@ -187,11 +188,6 @@ def redraw_piece(pc, px, py, pdir):
 #===============================================================================
 # score
 #===============================================================================
-def reset_score():
-    global score
-    score = 0
-
-
 def get_score():
     return score
 
@@ -231,7 +227,7 @@ def collide(pc, px, py, pdir):
 #===============================================================================
 def new_board_lines(num):
     assert isinstance(num, int), num
-    return [[0] * BOARD_WIDTH for _ in range(num)]
+    return [[EMPTY] * BOARD_WIDTH for _ in range(num)]
 
 
 board = new_board_lines(BOARD_HEIGHT)
@@ -262,7 +258,7 @@ def place_piece():
 
 def clear_complete_lines():
     global board
-    nb = [l for l in board if 0 in l] # 沒有被填滿的
+    nb = [l for l in board if EMPTY in l] # 沒有被填滿的
     s = len(board) - len(nb)
     if s:
         board = new_board_lines(s) + nb
@@ -372,22 +368,12 @@ def tick():
 #===============================================================================
 # initial
 #===============================================================================
-board = None
-piece = None
-pc = None
-px = PIECE_INIT_X
-py = PIECE_INIT_Y
-pdir = 0
-score = 0
-valid_keys = NORMAL_KEYS
-pause = False
-scr = None
-
-def init_tetris():
-    global board, pc, px, py, pdir, scr
+if __name__ == '__main__':
     board = new_board_lines(BOARD_HEIGHT)
     pc, px, py, pdir = pieces.new_piece() # 第一個piece
-    reset_score()
+    score = 0
+    valid_keys = NORMAL_KEYS
+    pause = False
 
     scr = Tkinter.Canvas(width=map_to_ui_x(BOARD_WIDTH), height=map_to_ui_y(BOARD_HEIGHT), bg=BACKGROUND_COLOR)
     init_ui(scr, board, pc, px, py, pdir)
@@ -399,6 +385,3 @@ def init_tetris():
 #  for line in board: print '\t'.join(str(v) for v in line)
 #  print len(board)
 #  print px,py
-
-if __name__ == '__main__':
-    init_tetris()
