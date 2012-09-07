@@ -1,0 +1,109 @@
+# -*- coding: utf-8 -*-
+"""
+# ZeroMQ
+#   Website -- http://www.zeromq.org/
+#   Python binding -- http://www.zeromq.org/bindings:python
+#   Guide -- http://zguide.zeromq.org/chapter:all
+"""
+
+import logging
+import zmq
+
+import codec
+import pieces
+import ui_tkinter
+
+#===============================================================================
+# global constant
+#===============================================================================
+BOARD_WIDTH = 10
+BOARD_HEIGHT = 20
+
+ZMQ_PUBLISH_ID = 'TETRIS'
+
+
+#===============================================================================
+# board
+#===============================================================================
+def new_board_lines(num):
+    assert isinstance(num, int), num
+    return [[pieces.EMPTY] * BOARD_WIDTH for _ in range(num)]
+
+
+#===============================================================================
+# key event
+#===============================================================================
+def key_event(e=None):
+    if not e:
+        return
+
+    key = e.keysym # get key event
+    if key.lower() == 'q':
+        exit()
+
+
+#===============================================================================
+# 
+#===============================================================================
+def process_message(msg):
+    _log = logging.getLogger('process_msg')
+    _log.debug('[MESSAGE] %s' % `msg`)
+
+    if len(msg) != 2:
+        return
+
+    header = msg[0]
+    obj = msg[1]
+    if header == codec.PIECE_HEADER:
+        (pc, px, py, pdir) = obj
+        ui_tkinter.redraw_piece(pc, px, py, pdir)
+
+    elif header == codec.BOARD_HEADER:
+        (board_width, board_height, board) = obj
+        ui_tkinter.redraw_board(board_width, board_height, board)
+
+
+def polling():
+    socks = dict(poller.poll(0))
+    if subscriber not in socks:
+        return False
+    if socks[subscriber] != zmq.POLLIN:
+        return False
+
+    recv_str = subscriber.recv()
+    (_, code_str) = recv_str.split(None, 1) # strip ZMQ_PUBLISH_ID
+    msg = codec.decode(code_str)
+    if not msg:
+        return False
+
+    process_message(msg)
+    return True
+
+
+def handle_event(e=None):
+    if e:
+        return key_event(e)
+    else:
+        return polling()
+
+
+if __name__ == '__main__':
+    logging.basicConfig()
+
+    board = new_board_lines(BOARD_HEIGHT)
+    pc, px, py, pdir = (pieces.EMPTY, -4, -4, 0)
+
+    context = zmq.Context()
+
+    # connect to tetris server
+    subscriber = context.socket(zmq.SUB)
+    subscriber.connect("tcp://localhost:5556")
+    subscriber.setsockopt(zmq.SUBSCRIBE, ZMQ_PUBLISH_ID)
+
+    # initialize poll set
+    poller = zmq.Poller()
+    poller.register(subscriber, zmq.POLLIN)
+
+    # ui
+    ui_tkinter.init_ui(BOARD_WIDTH, BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    ui_tkinter.main_loop()
