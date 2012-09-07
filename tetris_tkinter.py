@@ -273,7 +273,10 @@ def switch_pause():
     global pause, valid_keys
     assert isinstance(pause, bool), pause
     pause = (not pause)
-    valid_keys = PAUSE_KEYS
+    if pause:
+        valid_keys = PAUSE_KEYS
+    else:
+        valid_keys = NORMAL_KEYS
 
 
 def game_over():
