@@ -88,10 +88,6 @@ def decode_board(*args):
         line = []
         for i in range(board_width):
             pc = args[j * board_width + i + 2]
-            try:
-                pc = int(pc)
-            except ValueError:
-                pass
             line.append(pc)
         board.append(line)
 

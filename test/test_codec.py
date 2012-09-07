@@ -22,7 +22,7 @@ class TestCodec(unittest.TestCase):
     def test_board_codec(self):
         board_width = 3
         board_height = 5
-        board = [[0, 0, 0], [0, 'S', 0], [0, 'S', 'S'], [0, 'T', 'S'], ['T', 'T', 'T']]
+        board = [['_', '_', '_'], ['_', 'S', '_'], ['_', 'S', 'S'], ['_', 'T', 'S'], ['T', 'T', 'T']]
 
         expect = codec.BOARD_HEADER, (board_width, board_height, board)
 

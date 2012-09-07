@@ -16,7 +16,7 @@ UNIT_Y = 30
 PIECE_INIT_X = 3
 PIECE_INIT_Y = -3
 
-EMPTY = ''
+EMPTY = '_'
 BACKGROUND_COLOR = '#000'
 
 
@@ -217,7 +217,7 @@ def collide(pc, px, py, pdir):
             return True
         if y < 0:
             continue
-        if board[y][x]:
+        if board[y][x] != EMPTY:
             return True
     return False
 

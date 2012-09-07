@@ -36,7 +36,7 @@ import ui
 BOARD_WIDTH = 10
 BOARD_HEIGHT = 20
 
-EMPTY = ''
+EMPTY = '_'
 
 score, N, T = 0, 100, 0.5
 
@@ -87,7 +87,7 @@ def collide(pc, px, py, pdir):
             return True
         if y < 0:
             continue
-        if board[y][x]:
+        if board[y][x] != EMPTY:
             return True
     return False
 
