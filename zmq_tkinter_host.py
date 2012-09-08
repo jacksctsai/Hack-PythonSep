@@ -12,12 +12,21 @@ import zmq
 import boards
 import codec
 import pieces
+import signals
 import ui_tkinter
+
 
 #===============================================================================
 # global constant
 #===============================================================================
 ZMQ_PUBLISH_ID = 'TETRIS'
+
+
+#===============================================================================
+# signal
+#===============================================================================
+piece_changed = signals.Signal()
+board_changed = signals.Signal()
 
 
 #===============================================================================
@@ -27,19 +36,12 @@ def publish(msg):
     publisher.send('%s %s' % (ZMQ_PUBLISH_ID, msg))
 
 
-#===============================================================================
-# event
-#===============================================================================
-def piece_changed_event():
-    ui_tkinter.redraw_piece(pc, px, py, pdir)
-
+def publish_piece_info(pc, px, py, pdir):
     code_str = codec.encode_piece(pc, px, py, pdir)
     publish(code_str)
 
 
-def board_changed_event():
-    ui_tkinter.redraw_board(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
-
+def publish_board_info(board_width, board_height, board):
     code_str = codec.encode_board(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
     publish(code_str)
 
@@ -63,7 +65,7 @@ def move_piece_left():
     if collide(pc, npx, py, pdir):
         return
     px = npx
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def move_piece_right():
@@ -72,7 +74,7 @@ def move_piece_right():
     if collide(pc, npx, py, pdir):
         return
     px = npx
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def rotate_piece():
@@ -81,7 +83,7 @@ def rotate_piece():
     if collide(pc, px, py, npdir):
         return
     pdir = npdir
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def drop_piece():
@@ -90,7 +92,7 @@ def drop_piece():
         if collide(pc, px, j + 1, pdir):
             py = j
             break
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 #===============================================================================
@@ -148,8 +150,8 @@ def place_piece():
 
     pc, px, py, pdir = pieces.new_piece()
 
-    piece_changed_event()
-    board_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
+    board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
 
 
 def clear_complete_lines():
@@ -158,7 +160,7 @@ def clear_complete_lines():
     s = len(board) - len(nb)
     if s:
         board = boards.create_board_lines(s, pieces.EMPTY) + nb
-        board_changed_event()
+        board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
     return s
 
 
@@ -235,7 +237,7 @@ def handle_event(e=None):
 
     if not collide(pc, px, py + 1, pdir):
         py += 1
-        piece_changed_event()
+        piece_changed.emit(pc, px, py, pdir)
         return
 
     if py < 0:
@@ -264,6 +266,11 @@ if __name__ == '__main__':
     publisher = context.socket(zmq.PUB)
     publisher.bind("tcp://*:5556")
 
+    piece_changed.connect(publish_piece_info)
+    board_changed.connect(publish_board_info)
+
     # ui
     ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    piece_changed.connect(ui_tkinter.redraw_piece)
+    board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

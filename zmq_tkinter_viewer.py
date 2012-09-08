@@ -12,12 +12,21 @@ import zmq
 import boards
 import codec
 import pieces
+import signals
 import ui_tkinter
+
 
 #===============================================================================
 # global constant
 #===============================================================================
 ZMQ_PUBLISH_ID = 'TETRIS'
+
+
+#===============================================================================
+# signal
+#===============================================================================
+piece_changed = signals.Signal()
+board_changed = signals.Signal()
 
 
 #===============================================================================
@@ -46,11 +55,11 @@ def process_message(msg):
     obj = msg[1]
     if header == codec.PIECE_HEADER:
         (pc, px, py, pdir) = obj
-        ui_tkinter.redraw_piece(pc, px, py, pdir)
+        piece_changed.emit(pc, px, py, pdir)
 
     elif header == codec.BOARD_HEADER:
         (board_width, board_height, board) = obj
-        ui_tkinter.redraw_board(board_width, board_height, board)
+        board_changed.emit(board_width, board_height, board)
 
 
 def polling():
@@ -96,4 +105,6 @@ if __name__ == '__main__':
 
     # ui
     ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    piece_changed.connect(ui_tkinter.redraw_piece)
+    board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

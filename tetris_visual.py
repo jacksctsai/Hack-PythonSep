@@ -27,6 +27,7 @@ import time
 
 import boards
 import pieces
+import signals
 import sound
 import ui
 
@@ -38,11 +39,9 @@ score, N, T = 0, 100, 0.5
 
 
 #===============================================================================
-# event
+# signal
 #===============================================================================
-def piece_changed_event():
-    # 方塊位置變更
-    ui.update_focus(pc, px, py, pdir)
+piece_changed = signals.Signal()
 
 
 #===============================================================================
@@ -138,7 +137,7 @@ def drop_piece():
         if collide(pc, px, j + 1, pdir):
             py = j
             break
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def rotate_piece():
@@ -148,7 +147,7 @@ def rotate_piece():
     if collide(pc, px, py, npdir):
         return
     pdir = npdir
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def move_piece_left():
@@ -157,7 +156,7 @@ def move_piece_left():
     if collide(pc, npx, py, pdir):
         return
     px = npx
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def move_piece_right():
@@ -166,7 +165,7 @@ def move_piece_right():
     if collide(pc, npx, py, pdir):
         return
     px = npx
-    piece_changed_event()
+    piece_changed.emit(pc, px, py, pdir)
 
 
 def switch_pause():
@@ -239,7 +238,7 @@ def tick(t_stamp=[time.time(), 0]):
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
         if not collide(pc, px, py + 1, pdir): #自動落下
             py += 1
-            piece_changed_event()
+            piece_changed.emit(pc, px, py, pdir)
 
         elif py < 0: #Game over
             game_over()
@@ -270,6 +269,7 @@ if __name__ == '__main__':
 
     # ui
     ui.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT)
+    piece_changed.connect(ui.update_focus) # 方塊位置變更
     ui.new_focus(pc, px, py, pdir)
 
     # sound
