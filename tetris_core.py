@@ -27,6 +27,79 @@ def get_piece_status():
 
 
 #===============================================================================
+# board status
+#===============================================================================
+board_status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+
+def get_board_status():
+    return board_status
+
+
+def is_piece_on_board(x, y, pc):
+    assert isinstance(x, int), x
+    assert isinstance(y, int), y
+    assert (0 <= x < boards.BOARD_WIDTH), x
+    assert (0 <= y < boards.BOARD_HEIGHT), y
+    return (pc == board_status[y][x])
+
+
+def change_piece_on_board(x, y, pc):
+    assert isinstance(x, int), x
+    assert isinstance(y, int), y
+    if not (0 <= x < boards.BOARD_WIDTH):
+        return False
+    if not (0 <= y < boards.BOARD_HEIGHT):
+        return False
+    if pc == board_status[y][x]:
+        return False
+    board_status[y][x] = pc
+    return True
+
+
+def get_complete_lines():
+    line_idx_list = [idx for (idx, line) in enumerate(board_status) if pieces.EMPTY not in line]
+    return line_idx_list
+
+
+def strip_board_lines(line_idx_list):
+    global board_status
+    line_idx_set = set(line_idx_list)
+    nb = [line for (idx, line) in enumerate(board_status) if idx not in line_idx_set] # 不要被消除的
+    add_num = boards.BOARD_HEIGHT - len(nb)
+    board_status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
+    commit_board_status()
+
+
+def commit_board_status():
+    board_changed.emit(board_status)
+
+
+
+#===============================================================================
+# collide
+#===============================================================================
+def collide(pc, px, py, pdir):
+    """
+    collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
+    """
+    assert isinstance(px, int), px
+    assert isinstance(py, int), py
+    p_shape = pieces.get_piece_shape(pc, pdir)
+    for (i, j) in p_shape:
+        x = px + i
+        y = py + j
+        if not (0 <= x < boards.BOARD_WIDTH):
+            return True
+        if y >= boards.BOARD_HEIGHT:
+            return True
+        if y < 0:
+            continue
+        if not is_piece_on_board(x, y, pieces.EMPTY):
+            return True
+    return False
+
+
+#===============================================================================
 # action
 #===============================================================================
 """
@@ -71,24 +144,19 @@ def drop_piece():
             break
 
 
-def collide(pc, px, py, pdir):
+def place_piece():
     """
-    collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
+    for i, j in piece:
+        board[j + py][i + px] = pc
     """
-    assert isinstance(px, int), px
-    assert isinstance(py, int), py
+    pc, px, py, pdir = get_piece_status()
     p_shape = pieces.get_piece_shape(pc, pdir)
-    for (i, j) in p_shape:
+    for i, j in p_shape:
         x = px + i
         y = py + j
         if not (0 <= x < boards.BOARD_WIDTH):
-            return True
-        if y >= boards.BOARD_HEIGHT:
-            return True
-        if y < 0:
             continue
-        if board[y][x] != pieces.EMPTY:
-            return True
-    return False
-
-
+        if not (0 <= y < boards.BOARD_HEIGHT):
+            continue
+        change_piece_on_board(x, y, pc)
+    commit_board_status()

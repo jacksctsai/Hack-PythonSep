@@ -32,11 +32,11 @@ def redraw_board(board):
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
     for i, j in [(i, j) for i in range(boards.BOARD_WIDTH) for j in range(boards.BOARD_HEIGHT)]:
-        if (i, j) in piece_region: # ignore piece region
-            continue
         if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
             continue
         UI_BOARD[j][i] = board[j][i]
+        if (i, j) in piece_region: # ignore piece region
+            continue
         color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
         ui_change_rect_color(i, j, color)
 
