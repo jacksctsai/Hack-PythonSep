@@ -178,13 +178,7 @@ KEY_ACTION_MAP = {
 }
 
 
-NORMAL_KEYS = set(['p', 'q',
-                   'down', 'j',
-                   'up', 'k',
-                   'left', 'h',
-                   'right', 'l'])
-
-
+NORMAL_KEYS = set(['up', 'down', 'left', 'right', 'h', 'j', 'k', 'l', 'p', 'q'])
 PAUSE_KEYS = set(['p', 'q'])
 
 

@@ -170,7 +170,13 @@ def move_piece_right():
 
 
 def switch_pause():
+    global valid_keys
     ui.switch_pause()
+    if ui.is_pause():
+        valid_keys = PAUSE_KEYS
+    else:
+        valid_keys = NORMAL_KEYS
+
 
 
 def is_pause():
@@ -190,48 +196,36 @@ def quit_game():
 #===============================================================================
 # 鍵盤控制
 #===============================================================================
-NORMAL_ACTION_MAP = {
+KEY_ACTION_MAP = {
     # switch_pause
     'p': switch_pause,
-    'P': switch_pause,
     # quit_game
     'q': quit_game,
-    'Q': quit_game,
     # drop_piece
     'down': drop_piece,
     'j': drop_piece,
-    'J': drop_piece,
     # rotate_piece
     'up': rotate_piece,
     'k': rotate_piece,
-    'K': rotate_piece,
     # move_piece_left
     'left': move_piece_left,
     'h': move_piece_left,
-    'H': move_piece_left,
     # move_piece_right
     'right': move_piece_right,
     'l': move_piece_right,
-    'L': move_piece_right,
 }
 
 
-PAUSE_ACTION_MAP = {
-    # switch_pause
-    'p': switch_pause,
-    'P': switch_pause,
-    # quit_game
-    'q': quit_game,
-    'Q': quit_game,
-}
+NORMAL_KEYS = set(['up', 'down', 'left', 'right', 'h', 'j', 'k', 'l', 'p', 'q'])
+PAUSE_KEYS = set(['p', 'q'])
 
 
-def get_action(key, action_map):
-    try:
-        return action_map[key]
-    except KeyError:
-        no_action = lambda *args, **kwargs: None
-        return no_action
+def perform_key_action(key):
+    lkey = key.lower()
+    if lkey not in valid_keys:
+        return
+    act_func = KEY_ACTION_MAP[lkey]
+    act_func()
 
 
 #===============================================================================
@@ -266,17 +260,13 @@ def tick(t_stamp=[time.time(), 0]):
 
     key = ui.get_key()
     if key:
-        if is_pause():
-            action_map = PAUSE_ACTION_MAP
-        else:
-            action_map = NORMAL_ACTION_MAP
-        act_func = get_action(key, action_map)
-        act_func()
+        perform_key_action(key)
 
 
 if __name__ == '__main__':
     board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
     pc, px, py, pdir = pieces.new_piece()
+    valid_keys = NORMAL_KEYS
 
     # ui
     ui.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT)
