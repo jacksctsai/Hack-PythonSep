@@ -28,6 +28,54 @@ def get_piece_status():
 
 
 #===============================================================================
+# board status
+#===============================================================================
+board_status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+
+def get_board_status():
+    return board_status
+
+
+def is_piece_on_board(x, y, pc):
+    assert isinstance(x, int), x
+    assert isinstance(y, int), y
+    assert (0 <= x < boards.BOARD_WIDTH), x
+    assert (0 <= y < boards.BOARD_HEIGHT), y
+    return (pc == board_status[y][x])
+
+
+def change_piece_on_board(x, y, pc):
+    assert isinstance(x, int), x
+    assert isinstance(y, int), y
+    if not (0 <= x < boards.BOARD_WIDTH):
+        return False
+    if not (0 <= y < boards.BOARD_HEIGHT):
+        return False
+    if pc == board_status[y][x]:
+        return False
+    board_status[y][x] = pc
+    return True
+
+
+def get_complete_line_index():
+    line_idx_list = [idx for (idx, line) in enumerate(board_status) if pieces.EMPTY not in line]
+    return line_idx_list
+
+
+def strip_board_lines(line_idx_list):
+    global board_status
+    line_idx_set = set(line_idx_list)
+    nb = [line for (idx, line) in enumerate(board_status) if idx not in line_idx_set] # 不要被消除的
+    add_num = boards.BOARD_HEIGHT - len(nb)
+    board_status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
+    commit_board_status()
+
+
+def commit_board_status():
+    board_changed.emit(board_status)
+
+
+#===============================================================================
 # action
 #===============================================================================
 """
@@ -104,7 +152,7 @@ def collide(pc, px, py, pdir):
             return True
         if y < 0:
             continue
-        if board[y][x] != pieces.EMPTY:
+        if not is_piece_on_board(x, y, pieces.EMPTY):
             return True
     return False
 
@@ -123,22 +171,12 @@ def place_piece():
             continue
         if not (0 <= y < boards.BOARD_HEIGHT):
             continue
-        board[y][x] = pc
+        change_piece_on_board(x, y, pc)
 
     npc, npx, npy, npdir = pieces.new_piece()
     update_piece_status(npc, npx, npy, npdir)
 
-    board_changed.emit(board)
-
-
-def clear_complete_lines():
-    global board
-    nb = [l for l in board if pieces.EMPTY in l] # 沒有被填滿的
-    s = len(board) - len(nb)
-    if s:
-        board = boards.create_board_lines(s, pieces.EMPTY) + nb
-        board_changed.emit(board)
-    return s
+    commit_board_status()
 
 
 #===============================================================================
@@ -202,8 +240,6 @@ def perform_key_action(key):
 # event handler
 #===============================================================================
 def handle_event(e=None):
-    global py
-
     if e:
         key = e.keysym # get key event
         perform_key_action(key)
@@ -222,16 +258,20 @@ def handle_event(e=None):
         return
 
     place_piece()
-    s = clear_complete_lines()
-    if s:
-        incr_score(2 ** s)
+
+    complete_lines = get_complete_line_index()
+    if not complete_lines:
+        return
+
+    strip_board_lines(complete_lines)
+    incr_score(2 ** len(complete_lines))
 
 
 #===============================================================================
 # initial
 #===============================================================================
 if __name__ == '__main__':
-    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+    _board = get_board_status()
 
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     update_piece_status(_pc, _px, _py, _pdir)
@@ -241,7 +281,7 @@ if __name__ == '__main__':
     pause = False
 
     # ui
-    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, _pc, _px, _py, _pdir, handle_event)
+    ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
     piece_changed.connect(ui_tkinter.redraw_piece)
     board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

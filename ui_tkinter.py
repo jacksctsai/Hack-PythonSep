@@ -93,13 +93,13 @@ def tick():
 # init
 #===============================================================================
 scr = None
-def init_ui(board_width, board_height, board, pc, px, py, pdir, event_callback):
+def init_ui(board, pc, px, py, pdir, event_callback):
     global scr, EVENT_CALLBACK
     global UI_BOARD, UI_RECT_ID, UI_PIECE
 
     EVENT_CALLBACK = event_callback
 
-    scr = Tkinter.Canvas(width=map_to_ui_x(board_width), height=map_to_ui_y(board_height), bg=BACKGROUND_COLOR)
+    scr = Tkinter.Canvas(width=map_to_ui_x(boards.BOARD_WIDTH), height=map_to_ui_y(boards.BOARD_HEIGHT), bg=BACKGROUND_COLOR)
     scr.bind_all("<Key>", EVENT_CALLBACK)
     scr.pack()
 
@@ -110,9 +110,9 @@ def init_ui(board_width, board_height, board, pc, px, py, pdir, event_callback):
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
     UI_RECT_ID = []
-    for j in range(board_height):
+    for j in range(boards.BOARD_HEIGHT):
         id_list = []
-        for i in range(board_width):
+        for i in range(boards.BOARD_WIDTH):
             if (i, j) in piece_region:
                 color = PIECE_COLOR[pc]
             else:

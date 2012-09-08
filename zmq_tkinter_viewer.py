@@ -104,7 +104,7 @@ if __name__ == '__main__':
     poller.register(subscriber, zmq.POLLIN)
 
     # ui
-    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    ui_tkinter.init_ui(board, pc, px, py, pdir, handle_event)
     piece_changed.connect(ui_tkinter.redraw_piece)
     board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

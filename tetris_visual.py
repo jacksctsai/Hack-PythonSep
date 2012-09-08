@@ -42,6 +42,7 @@ score, N, T = 0, 100, 0.5
 # signal
 #===============================================================================
 piece_changed = signals.Signal()
+board_changed = signals.Signal()
 
 
 #===============================================================================
@@ -57,6 +58,54 @@ def update_piece_status(pc, px, py, pdir):
 
 def get_piece_status():
     return piece_status
+
+
+#===============================================================================
+# board status
+#===============================================================================
+board_status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+
+def get_board_status():
+    return board_status
+
+
+def is_piece_on_board(x, y, pc):
+    assert isinstance(x, int), x
+    assert isinstance(y, int), y
+    assert (0 <= x < boards.BOARD_WIDTH), x
+    assert (0 <= y < boards.BOARD_HEIGHT), y
+    return (pc == board_status[y][x])
+
+
+def change_piece_on_board(x, y, pc):
+    assert isinstance(x, int), x
+    assert isinstance(y, int), y
+    if not (0 <= x < boards.BOARD_WIDTH):
+        return False
+    if not (0 <= y < boards.BOARD_HEIGHT):
+        return False
+    if pc == board_status[y][x]:
+        return False
+    board_status[y][x] = pc
+    return True
+
+
+def get_complete_line_index():
+    line_idx_list = [idx for (idx, line) in enumerate(board_status) if pieces.EMPTY not in line]
+    return line_idx_list
+
+
+def strip_board_lines(line_idx_list):
+    global board_status
+    line_idx_set = set(line_idx_list)
+    nb = [line for (idx, line) in enumerate(board_status) if idx not in line_idx_set] # 不要被消除的
+    add_num = boards.BOARD_HEIGHT - len(nb)
+    board_status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
+    commit_board_status()
+
+
+def commit_board_status():
+    board_changed.emit(board_status)
 
 
 #===============================================================================
@@ -97,7 +146,7 @@ def collide(pc, px, py, pdir):
             return True
         if y < 0:
             continue
-        if board[y][x] != pieces.EMPTY:
+        if not is_piece_on_board(x, y, pieces.EMPTY):
             return True
     return False
 
@@ -115,29 +164,9 @@ def place_piece(pc, px, py, pdir):
             continue
         if not (0 <= y < boards.BOARD_HEIGHT):
             continue
-        board[y][x] = pc
+        change_piece_on_board(x, y, pc)
 
-
-def clear_complete_lines():
-    global board
-
-    nb = []
-    fn = []
-    for j, line in enumerate(board):
-        if pieces.EMPTY in line:
-            nb.append(line)
-        else:
-            fn.append(j)
-
-    if not fn:
-        return fn
-
-    board = boards.create_board_lines(len(fn), pieces.EMPTY) + nb
-
-    # 消去
-    sound.distroy_sound.play()
-    ui.clear_ui_lines(fn)
-    return fn
+    commit_board_status()
 
 
 #===============================================================================
@@ -257,9 +286,13 @@ def tick(t_stamp=[time.time(), 0]):
             place_piece(pc, px, py, pdir)
 
             # 檢查消去
-            fn = clear_complete_lines()
-            if fn:
-                incr_score(2 ** len(fn))
+            complete_lines = get_complete_line_index()
+            if complete_lines:
+                # 消去
+                sound.distroy_sound.play()
+                strip_board_lines(complete_lines)
+                ui.clear_ui_lines(complete_lines)
+                incr_score(2 ** len(complete_lines))
 
             pc, px, py, pdir = pieces.new_piece()
             ui.new_focus(pc, px, py, pdir)
@@ -273,13 +306,12 @@ def tick(t_stamp=[time.time(), 0]):
 
 
 if __name__ == '__main__':
-    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
     _pc, _px, _py, _pdir = pieces.new_piece()
     update_piece_status(_pc, _px, _py, _pdir)
     valid_keys = NORMAL_KEYS
 
     # ui
-    ui.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT)
+    ui.init_ui()
     piece_changed.connect(ui.update_focus) # 方塊位置變更
     ui.new_focus(_pc, _px, _py, _pdir)
 

@@ -282,7 +282,7 @@ if __name__ == '__main__':
     board_changed.connect(publish_board_info)
 
     # ui
-    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, _pc, _px, _py, _pdir, handle_event)
+    ui_tkinter.init_ui(board, _pc, _px, _py, _pdir, handle_event)
     piece_changed.connect(ui_tkinter.redraw_piece)
     board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()
