@@ -56,8 +56,8 @@ def publish_piece_info(pc, px, py, pdir):
     publish(code_str)
 
 
-def publish_board_info(board_width, board_height, board):
-    code_str = codec.encode_board(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
+def publish_board_info(board):
+    code_str = codec.encode_board(board)
     publish(code_str)
 
 
@@ -162,7 +162,7 @@ def place_piece():
     npc, npx, npy, npdir = pieces.new_piece()
     update_piece_status(npc, npx, npy, npdir)
 
-    board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
+    board_changed.emit(board)
 
 
 def clear_complete_lines():
@@ -171,7 +171,7 @@ def clear_complete_lines():
     s = len(board) - len(nb)
     if s:
         board = boards.create_board_lines(s, pieces.EMPTY) + nb
-        board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
+        board_changed.emit(board)
     return s
 
 

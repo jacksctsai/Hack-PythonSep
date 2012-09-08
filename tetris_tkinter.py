@@ -128,7 +128,7 @@ def place_piece():
     npc, npx, npy, npdir = pieces.new_piece()
     update_piece_status(npc, npx, npy, npdir)
 
-    board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
+    board_changed.emit(board)
 
 
 def clear_complete_lines():
@@ -137,7 +137,7 @@ def clear_complete_lines():
     s = len(board) - len(nb)
     if s:
         board = boards.create_board_lines(s, pieces.EMPTY) + nb
-        board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
+        board_changed.emit(board)
     return s
 
 

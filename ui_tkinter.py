@@ -1,6 +1,7 @@
 import copy
 import Tkinter
 
+import boards
 import pieces
 
 UNIT_X = 30
@@ -25,12 +26,12 @@ PIECE_COLOR = {
 #===============================================================================
 UI_BOARD = []
 UI_PIECE = []
-def redraw_board(board_width, board_height, board):
+def redraw_board(board):
     pc, px, py, pdir = UI_PIECE
     p_shape = pieces.get_piece_shape(pc, pdir)
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
-    for i, j in [(i, j) for i in range(board_width) for j in range(board_height)]:
+    for i, j in [(i, j) for i in range(boards.BOARD_WIDTH) for j in range(boards.BOARD_HEIGHT)]:
         if (i, j) in piece_region: # ignore piece region
             continue
         if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change

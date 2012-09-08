@@ -58,8 +58,8 @@ def process_message(msg):
         piece_changed.emit(pc, px, py, pdir)
 
     elif header == codec.BOARD_HEADER:
-        (board_width, board_height, board) = obj
-        board_changed.emit(board_width, board_height, board)
+        board = obj
+        board_changed.emit(board)
 
 
 def polling():

@@ -3,6 +3,7 @@ import logging
 import unittest
 
 import codec
+import boards
 import pieces
 
 
@@ -20,13 +21,22 @@ class TestCodec(unittest.TestCase):
         self.assertEqual(result, expect)
 
     def test_board_codec(self):
-        board_width = 3
-        board_height = 5
-        board = [['_', '_', '_'], ['_', 'S', '_'], ['_', 'S', 'S'], ['_', 'T', 'S'], ['T', 'T', 'T']]
+        """
+        board = [['_', '_', '_', '_', ...],
+                 ...,
+                 ['_', '_', '_', '_', ...],
+                 ['_', 'S', '_', '_', ...],
+                 ['_', 'S', 'S', '_', ...],
+                 ['_', 'T', 'S', '_', ...],
+                 ['T', 'T', 'T', '_', ...]]
+        """
+        board = boards.create_board_lines(boards.BOARD_HEIGHT, '_')
+        board[-1][0] = board[-1][1] = board[-1][2] = board[-2][1] = 'T'
+        board[-2][2] = board[-3][1] = board[-3][2] = board[-4][1] = 'S'
 
-        expect = codec.BOARD_HEADER, (board_width, board_height, board)
+        expect = codec.BOARD_HEADER, board
 
-        code_str = codec.encode_board(board_width, board_height, board)
+        code_str = codec.encode_board(board)
         result = codec.decode(code_str)
 
         self.assertEqual(result, expect)

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import boards
+
 
 #===============================================================================
 # decode
@@ -57,10 +59,10 @@ def decode_piece(*args):
 # codec : board
 #===============================================================================
 BOARD_HEADER = 'BOARD'
-def encode_board(board_width, board_height, board):
-    code_str_list = [BOARD_HEADER, str(board_width), str(board_height)]
-    for j in range(board_height):
-        for i in range(board_width):
+def encode_board(board):
+    code_str_list = [BOARD_HEADER]
+    for j in range(boards.BOARD_HEIGHT):
+        for i in range(boards.BOARD_WIDTH):
             code_str_list.append(str(board[j][i]))
     code_str = ' '.join(code_str_list)
     return code_str
@@ -72,26 +74,19 @@ def decode_board(*args):
         _log.error('[DECODE] fail to decode board -- invalid args [%s]' % ' '.join(args))
         return
 
-    try:
-        board_width = int(args[0])
-        board_height = int(args[1])
-    except ValueError:
-        _log.error('[DECODE] fail to decode piece -- invalid format in args [%s]' % ' '.join(args))
-        return
-
-    if len(args) != (board_width * board_height + 2):
+    if len(args) != (boards.BOARD_WIDTH * boards.BOARD_HEIGHT):
         _log.error('[DECODE] fail to decode board -- not enough args [%s]' % ' '.join(args))
         return
 
     board = []
-    for j in range(board_height):
+    for j in range(boards.BOARD_HEIGHT):
         line = []
-        for i in range(board_width):
-            pc = args[j * board_width + i + 2]
+        for i in range(boards.BOARD_WIDTH):
+            pc = args[j * boards.BOARD_WIDTH + i]
             line.append(pc)
         board.append(line)
 
-    return board_width, board_height, board
+    return board
 
 
 #===============================================================================
