@@ -25,10 +25,9 @@
 
 import time
 
-import boards
 import pieces
-import signals
 import sound
+import tetris_core
 import ui
 
 
@@ -36,12 +35,6 @@ import ui
 # 設定值
 #===============================================================================
 score, N, T = 0, 100, 0.5
-
-
-#===============================================================================
-# signal
-#===============================================================================
-piece_changed = signals.Signal()
 
 
 #===============================================================================
@@ -63,111 +56,8 @@ def incr_score(value):
 
 
 #===============================================================================
-# core function
-#===============================================================================
-def collide(pc, px, py, pdir):
-    """
-    collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
-    """
-    assert isinstance(px, int), px
-    assert isinstance(py, int), py
-    assert isinstance(pdir, int), pdir
-    p_shape = pieces.get_piece_shape(pc, pdir)
-    for (i, j) in p_shape:
-        x = px + i
-        y = py + j
-        if not (0 <= x < boards.BOARD_WIDTH):
-            return True
-        if y >= boards.BOARD_HEIGHT:
-            return True
-        if y < 0:
-            continue
-        if board[y][x] != pieces.EMPTY:
-            return True
-    return False
-
-
-def place_piece(pc, px, py, pdir):
-    """
-    for i, j in piece:
-        board[j + py][i + px] = pc
-    """
-    p_shape = pieces.get_piece_shape(pc, pdir)
-    for i, j in p_shape:
-        x = px + i
-        y = py + j
-        if not (0 <= x < boards.BOARD_WIDTH):
-            continue
-        if not (0 <= y < boards.BOARD_HEIGHT):
-            continue
-        board[y][x] = pc
-
-
-def clear_complete_lines():
-    global board
-
-    nb = []
-    fn = []
-    for j, line in enumerate(board):
-        if pieces.EMPTY in line:
-            nb.append(line)
-        else:
-            fn.append(j)
-
-    if not fn:
-        return fn
-
-    board = boards.create_board_lines(len(fn), pieces.EMPTY) + nb
-
-    # 消去
-    sound.distroy_sound.play()
-    ui.clear_ui_lines(fn)
-    return fn
-
-
-#===============================================================================
 # action
 #===============================================================================
-def drop_piece():
-    """
-    py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
-    """
-    global py
-    for j in range(py, boards.BOARD_HEIGHT):
-        if collide(pc, px, j + 1, pdir):
-            py = j
-            break
-    piece_changed.emit(pc, px, py, pdir)
-
-
-def rotate_piece():
-    global pdir
-    sound.rotate_sound.play()
-    npdir = (pdir + 1) % 4
-    if collide(pc, px, py, npdir):
-        return
-    pdir = npdir
-    piece_changed.emit(pc, px, py, pdir)
-
-
-def move_piece_left():
-    global px
-    npx = px - 1
-    if collide(pc, npx, py, pdir):
-        return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
-
-
-def move_piece_right():
-    global px
-    npx = px + 1
-    if collide(pc, npx, py, pdir):
-        return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
-
-
 def switch_pause():
     global valid_keys
     ui.switch_pause()
@@ -175,7 +65,6 @@ def switch_pause():
         valid_keys = PAUSE_KEYS
     else:
         valid_keys = NORMAL_KEYS
-
 
 
 def is_pause():
@@ -201,17 +90,17 @@ KEY_ACTION_MAP = {
     # quit_game
     'q': quit_game,
     # drop_piece
-    'down': drop_piece,
-    'j': drop_piece,
+    'down': tetris_core.drop_piece,
+    'j': tetris_core.drop_piece,
     # rotate_piece
-    'up': rotate_piece,
-    'k': rotate_piece,
+    'up': tetris_core.rotate_piece,
+    'k': tetris_core.rotate_piece,
     # move_piece_left
-    'left': move_piece_left,
-    'h': move_piece_left,
+    'left': tetris_core.move_piece_left,
+    'h': tetris_core.move_piece_left,
     # move_piece_right
-    'right': move_piece_right,
-    'l': move_piece_right,
+    'right': tetris_core.move_piece_right,
+    'l': tetris_core.move_piece_right,
 }
 
 
@@ -231,29 +120,32 @@ def perform_key_action(key):
 # tick
 #===============================================================================
 def tick(t_stamp=[time.time(), 0]):
-    global pc, px, py, pdir
-
     # 自動處理
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
-        if not collide(pc, px, py + 1, pdir): #自動落下
-            py += 1
-            piece_changed.emit(pc, px, py, pdir)
+        pc, px, py, pdir = tetris_core.get_piece_status()
+        if not tetris_core.collide(pc, px, py + 1, pdir): #自動落下
+            tetris_core.update_piece_status(pc, px, py + 1, pdir)
 
         elif py < 0: #Game over
             game_over()
             return
 
         else:  #到底
-            place_piece(pc, px, py, pdir)
+            tetris_core.place_piece()
 
             # 檢查消去
-            fn = clear_complete_lines()
-            if fn:
-                incr_score(2 ** len(fn))
+            complete_lines = tetris_core.get_complete_lines()
+            if complete_lines:
+                # 消去
+                sound.distroy_sound.play()
+                tetris_core.strip_board_lines(complete_lines)
+                ui.clear_ui_lines(complete_lines)
+                incr_score(2 ** len(complete_lines))
 
             pc, px, py, pdir = pieces.new_piece()
             ui.new_focus(pc, px, py, pdir)
+            tetris_core.update_piece_status(pc, px, py, pdir)
 
         t_stamp[0] = t_stamp[1]
 
@@ -263,14 +155,14 @@ def tick(t_stamp=[time.time(), 0]):
 
 
 if __name__ == '__main__':
-    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
-    pc, px, py, pdir = pieces.new_piece()
+    _pc, _px, _py, _pdir = pieces.new_piece()
+    tetris_core.update_piece_status(_pc, _px, _py, _pdir)
     valid_keys = NORMAL_KEYS
 
     # ui
-    ui.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT)
-    piece_changed.connect(ui.update_focus) # 方塊位置變更
-    ui.new_focus(pc, px, py, pdir)
+    ui.init_ui()
+    tetris_core.piece_changed.connect(ui.update_focus) # 方塊位置變更
+    ui.new_focus(_pc, _px, _py, _pdir)
 
     # sound
     sound.init_sound()

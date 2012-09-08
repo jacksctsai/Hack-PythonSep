@@ -1,64 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
-import boards
 import pieces
-import signals
+import tetris_core
 import ui_tkinter
-
-
-#===============================================================================
-# signal
-#===============================================================================
-piece_changed = signals.Signal()
-board_changed = signals.Signal()
-
-
-#===============================================================================
-# action
-#===============================================================================
-"""
-    npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
-    npiece = [(j, 3 - i) for (i, j) in piece] if keys == "Up" else piece   #rotate
-
-    if not collide(npiece, npx, py):
-        piece, px = npiece, npx
-
-    if keys == "Down":
-        py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
-"""
-def move_piece_left():
-    global px
-    npx = px - 1
-    if collide(pc, npx, py, pdir):
-        return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
-
-
-def move_piece_right():
-    global px
-    npx = px + 1
-    if collide(pc, npx, py, pdir):
-        return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
-
-
-def rotate_piece():
-    global pdir
-    npdir = (pdir + 1) % 4
-    if collide(pc, px, py, npdir):
-        return
-    pdir = npdir
-    piece_changed.emit(pc, px, py, pdir)
-
-
-def drop_piece():
-    global py
-    for j in range(py, boards.BOARD_HEIGHT):
-        if collide(pc, px, j + 1, pdir):
-            py = j
-            break
-    piece_changed.emit(pc, px, py, pdir)
 
 
 #===============================================================================
@@ -75,63 +18,7 @@ def incr_score(value):
 
 
 #===============================================================================
-# core function
-#===============================================================================
-def collide(pc, px, py, pdir):
-    """
-    collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
-    """
-    assert isinstance(px, int), px
-    assert isinstance(py, int), py
-    p_shape = pieces.get_piece_shape(pc, pdir)
-    for (i, j) in p_shape:
-        x = px + i
-        y = py + j
-        if not (0 <= x < boards.BOARD_WIDTH):
-            return True
-        if y >= boards.BOARD_HEIGHT:
-            return True
-        if y < 0:
-            continue
-        if board[y][x] != pieces.EMPTY:
-            return True
-    return False
-
-
-def place_piece():
-    """
-    for i, j in piece:
-        board[j + py][i + px] = pc
-    """
-    global pc, px, py, pdir
-    p_shape = pieces.get_piece_shape(pc, pdir)
-    for i, j in p_shape:
-        x = px + i
-        y = py + j
-        if not (0 <= x < boards.BOARD_WIDTH):
-            continue
-        if not (0 <= y < boards.BOARD_HEIGHT):
-            continue
-        board[y][x] = pc
-
-    pc, px, py, pdir = pieces.new_piece()
-
-    piece_changed.emit(pc, px, py, pdir)
-    board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
-
-
-def clear_complete_lines():
-    global board
-    nb = [l for l in board if pieces.EMPTY in l] # 沒有被填滿的
-    s = len(board) - len(nb)
-    if s:
-        board = boards.create_board_lines(s, pieces.EMPTY) + nb
-        board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
-    return s
-
-
-#===============================================================================
-# 
+# action
 #===============================================================================
 def switch_pause():
     global pause, valid_keys
@@ -161,17 +48,17 @@ KEY_ACTION_MAP = {
     # quit_game
     'q': quit_game,
     # drop_piece
-    'down': drop_piece,
-    'j': drop_piece,
+    'down': tetris_core.drop_piece,
+    'j': tetris_core.drop_piece,
     # rotate_piece
-    'up': rotate_piece,
-    'k': rotate_piece,
+    'up': tetris_core.rotate_piece,
+    'k': tetris_core.rotate_piece,
     # move_piece_left
-    'left': move_piece_left,
-    'h': move_piece_left,
+    'left': tetris_core.move_piece_left,
+    'h': tetris_core.move_piece_left,
     # move_piece_right
-    'right': move_piece_right,
-    'l': move_piece_right,
+    'right': tetris_core.move_piece_right,
+    'l': tetris_core.move_piece_right,
 }
 
 
@@ -191,8 +78,6 @@ def perform_key_action(key):
 # event handler
 #===============================================================================
 def handle_event(e=None):
-    global py
-
     if e:
         key = e.keysym # get key event
         perform_key_action(key)
@@ -201,33 +86,43 @@ def handle_event(e=None):
     if pause:
         return
 
-    if not collide(pc, px, py + 1, pdir):
-        py += 1
-        piece_changed.emit(pc, px, py, pdir)
+    pc, px, py, pdir = tetris_core.get_piece_status()
+    if not tetris_core.collide(pc, px, py + 1, pdir):
+        tetris_core.update_piece_status(pc, px, py + 1, pdir)
         return
 
     if py < 0:
         game_over()
         return
 
-    place_piece()
-    s = clear_complete_lines()
-    if s:
-        incr_score(2 ** s)
+    tetris_core.place_piece()
+
+    npc, npx, npy, npdir = pieces.new_piece()
+    tetris_core.update_piece_status(npc, npx, npy, npdir)
+
+    complete_lines = tetris_core.get_complete_lines()
+    if not complete_lines:
+        return
+
+    tetris_core.strip_board_lines(complete_lines)
+    incr_score(2 ** len(complete_lines))
 
 
 #===============================================================================
 # initial
 #===============================================================================
 if __name__ == '__main__':
-    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
-    pc, px, py, pdir = pieces.new_piece() # 第一個piece
+    _board = tetris_core.get_board_status()
+
+    _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
+    tetris_core.update_piece_status(_pc, _px, _py, _pdir)
+
     score = 0
     valid_keys = NORMAL_KEYS
     pause = False
 
     # ui
-    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
-    piece_changed.connect(ui_tkinter.redraw_piece)
-    board_changed.connect(ui_tkinter.redraw_board)
+    ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
+    tetris_core.piece_changed.connect(ui_tkinter.redraw_piece)
+    tetris_core.board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

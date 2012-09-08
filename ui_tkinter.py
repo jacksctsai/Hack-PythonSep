@@ -1,6 +1,7 @@
 import copy
 import Tkinter
 
+import boards
 import pieces
 
 UNIT_X = 30
@@ -25,17 +26,17 @@ PIECE_COLOR = {
 #===============================================================================
 UI_BOARD = []
 UI_PIECE = []
-def redraw_board(board_width, board_height, board):
+def redraw_board(board):
     pc, px, py, pdir = UI_PIECE
     p_shape = pieces.get_piece_shape(pc, pdir)
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
-    for i, j in [(i, j) for i in range(board_width) for j in range(board_height)]:
-        if (i, j) in piece_region: # ignore piece region
-            continue
+    for i, j in [(i, j) for i in range(boards.BOARD_WIDTH) for j in range(boards.BOARD_HEIGHT)]:
         if board[j][i] == UI_BOARD[j][i]: # board (i, j) not change
             continue
         UI_BOARD[j][i] = board[j][i]
+        if (i, j) in piece_region: # ignore piece region
+            continue
         color = PIECE_COLOR.get(board[j][i], BACKGROUND_COLOR)
         ui_change_rect_color(i, j, color)
 
@@ -92,13 +93,13 @@ def tick():
 # init
 #===============================================================================
 scr = None
-def init_ui(board_width, board_height, board, pc, px, py, pdir, event_callback):
+def init_ui(board, pc, px, py, pdir, event_callback):
     global scr, EVENT_CALLBACK
     global UI_BOARD, UI_RECT_ID, UI_PIECE
 
     EVENT_CALLBACK = event_callback
 
-    scr = Tkinter.Canvas(width=map_to_ui_x(board_width), height=map_to_ui_y(board_height), bg=BACKGROUND_COLOR)
+    scr = Tkinter.Canvas(width=map_to_ui_x(boards.BOARD_WIDTH), height=map_to_ui_y(boards.BOARD_HEIGHT), bg=BACKGROUND_COLOR)
     scr.bind_all("<Key>", EVENT_CALLBACK)
     scr.pack()
 
@@ -109,9 +110,9 @@ def init_ui(board_width, board_height, board, pc, px, py, pdir, event_callback):
     piece_region = [(i + px, j + py) for i, j in p_shape]
 
     UI_RECT_ID = []
-    for j in range(board_height):
+    for j in range(boards.BOARD_HEIGHT):
         id_list = []
-        for i in range(board_width):
+        for i in range(boards.BOARD_WIDTH):
             if (i, j) in piece_region:
                 color = PIECE_COLOR[pc]
             else:

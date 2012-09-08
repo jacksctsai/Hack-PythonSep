@@ -2,6 +2,7 @@
 
 import visual
 
+import boards
 import pieces
 
 R = 0.9
@@ -17,10 +18,10 @@ PIECE_COLOR = {
 }
 
 
-def init_ui(board_width, board_height):
-    visual.scene.center = ((board_width - 1) / 2, (board_height - 1) / 2)
-    visual.scene.width = board_width * 35
-    visual.scene.height = board_height * 35
+def init_ui():
+    visual.scene.center = ((boards.BOARD_WIDTH - 1) / 2, (boards.BOARD_HEIGHT - 1) / 2)
+    visual.scene.width = boards.BOARD_WIDTH * 35
+    visual.scene.height = boards.BOARD_HEIGHT * 35
     visual.scene.forward = (0, 0, +1)
     visual.scene.up = 0, -1, 0
     visual.scene.lights = [
@@ -30,7 +31,7 @@ def init_ui(board_width, board_height):
     #visual.scene.show_rendertime = 1
     visual.scene.pause = False
 
-    visual.points(pos=[(x, y) for x in xrange(board_width) for y in xrange(board_height)])
+    visual.points(pos=[(x, y) for x in xrange(boards.BOARD_WIDTH) for y in xrange(boards.BOARD_HEIGHT)])
 
 
 def distory_ui():
