@@ -13,6 +13,21 @@ board_changed = signals.Signal()
 
 
 #===============================================================================
+# piece status
+#===============================================================================
+piece_status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+
+def update_piece_status(pc, px, py, pdir):
+    global piece_status
+    piece_status = (pc, px, py, pdir)
+    piece_changed.emit(*piece_status)
+
+
+def get_piece_status():
+    return piece_status
+
+
+#===============================================================================
 # action
 #===============================================================================
 """
@@ -26,39 +41,35 @@ board_changed = signals.Signal()
         py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
 """
 def move_piece_left():
-    global px
+    pc, px, py, pdir = get_piece_status()
     npx = px - 1
     if collide(pc, npx, py, pdir):
         return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
+    update_piece_status(pc, npx, py, pdir)
 
 
 def move_piece_right():
-    global px
+    pc, px, py, pdir = get_piece_status()
     npx = px + 1
     if collide(pc, npx, py, pdir):
         return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
+    update_piece_status(pc, npx, py, pdir)
 
 
 def rotate_piece():
-    global pdir
+    pc, px, py, pdir = get_piece_status()
     npdir = (pdir + 1) % 4
     if collide(pc, px, py, npdir):
         return
-    pdir = npdir
-    piece_changed.emit(pc, px, py, pdir)
+    update_piece_status(pc, px, py, npdir)
 
 
 def drop_piece():
-    global py
+    pc, px, py, pdir = get_piece_status()
     for j in range(py, boards.BOARD_HEIGHT):
         if collide(pc, px, j + 1, pdir):
-            py = j
+            update_piece_status(pc, px, j, pdir)
             break
-    piece_changed.emit(pc, px, py, pdir)
 
 
 #===============================================================================
@@ -103,7 +114,7 @@ def place_piece():
     for i, j in piece:
         board[j + py][i + px] = pc
     """
-    global pc, px, py, pdir
+    pc, px, py, pdir = get_piece_status()
     p_shape = pieces.get_piece_shape(pc, pdir)
     for i, j in p_shape:
         x = px + i
@@ -114,9 +125,9 @@ def place_piece():
             continue
         board[y][x] = pc
 
-    pc, px, py, pdir = pieces.new_piece()
+    npc, npx, npy, npdir = pieces.new_piece()
+    update_piece_status(npc, npx, npy, npdir)
 
-    piece_changed.emit(pc, px, py, pdir)
     board_changed.emit(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
 
 
@@ -201,9 +212,9 @@ def handle_event(e=None):
     if pause:
         return
 
+    pc, px, py, pdir = get_piece_status()
     if not collide(pc, px, py + 1, pdir):
-        py += 1
-        piece_changed.emit(pc, px, py, pdir)
+        update_piece_status(pc, px, py + 1, pdir)
         return
 
     if py < 0:
@@ -221,13 +232,16 @@ def handle_event(e=None):
 #===============================================================================
 if __name__ == '__main__':
     board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
-    pc, px, py, pdir = pieces.new_piece() # 第一個piece
+
+    _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
+    update_piece_status(_pc, _px, _py, _pdir)
+
     score = 0
     valid_keys = NORMAL_KEYS
     pause = False
 
     # ui
-    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, _pc, _px, _py, _pdir, handle_event)
     piece_changed.connect(ui_tkinter.redraw_piece)
     board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

@@ -45,6 +45,21 @@ piece_changed = signals.Signal()
 
 
 #===============================================================================
+# piece status
+#===============================================================================
+piece_status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+
+def update_piece_status(pc, px, py, pdir):
+    global piece_status
+    piece_status = (pc, px, py, pdir)
+    piece_changed.emit(*piece_status)
+
+
+def get_piece_status():
+    return piece_status
+
+
+#===============================================================================
 # score
 #===============================================================================
 def reset_score():
@@ -132,40 +147,36 @@ def drop_piece():
     """
     py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
     """
-    global py
+    pc, px, py, pdir = get_piece_status()
     for j in range(py, boards.BOARD_HEIGHT):
         if collide(pc, px, j + 1, pdir):
-            py = j
+            update_piece_status(pc, px, j, pdir)
             break
-    piece_changed.emit(pc, px, py, pdir)
 
 
 def rotate_piece():
-    global pdir
     sound.rotate_sound.play()
+    pc, px, py, pdir = get_piece_status()
     npdir = (pdir + 1) % 4
     if collide(pc, px, py, npdir):
         return
-    pdir = npdir
-    piece_changed.emit(pc, px, py, pdir)
+    update_piece_status(pc, px, py, npdir)
 
 
 def move_piece_left():
-    global px
+    pc, px, py, pdir = get_piece_status()
     npx = px - 1
     if collide(pc, npx, py, pdir):
         return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
+    update_piece_status(pc, npx, py, pdir)
 
 
 def move_piece_right():
-    global px
+    pc, px, py, pdir = get_piece_status()
     npx = px + 1
     if collide(pc, npx, py, pdir):
         return
-    px = npx
-    piece_changed.emit(pc, px, py, pdir)
+    update_piece_status(pc, npx, py, pdir)
 
 
 def switch_pause():
@@ -231,14 +242,12 @@ def perform_key_action(key):
 # tick
 #===============================================================================
 def tick(t_stamp=[time.time(), 0]):
-    global pc, px, py, pdir
-
     # 自動處理
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
+        pc, px, py, pdir = get_piece_status()
         if not collide(pc, px, py + 1, pdir): #自動落下
-            py += 1
-            piece_changed.emit(pc, px, py, pdir)
+            update_piece_status(pc, px, py + 1, pdir)
 
         elif py < 0: #Game over
             game_over()
@@ -254,6 +263,7 @@ def tick(t_stamp=[time.time(), 0]):
 
             pc, px, py, pdir = pieces.new_piece()
             ui.new_focus(pc, px, py, pdir)
+            update_piece_status(pc, px, py, pdir)
 
         t_stamp[0] = t_stamp[1]
 
@@ -264,13 +274,14 @@ def tick(t_stamp=[time.time(), 0]):
 
 if __name__ == '__main__':
     board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
-    pc, px, py, pdir = pieces.new_piece()
+    _pc, _px, _py, _pdir = pieces.new_piece()
+    update_piece_status(_pc, _px, _py, _pdir)
     valid_keys = NORMAL_KEYS
 
     # ui
     ui.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT)
     piece_changed.connect(ui.update_focus) # 方塊位置變更
-    ui.new_focus(pc, px, py, pdir)
+    ui.new_focus(_pc, _px, _py, _pdir)
 
     # sound
     sound.init_sound()
