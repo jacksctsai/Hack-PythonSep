@@ -1,12 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
+import boards
 import pieces
 import ui_tkinter
-
-#===============================================================================
-# global constant
-#===============================================================================
-BOARD_WIDTH = 10
-BOARD_HEIGHT = 20
 
 
 #===============================================================================
@@ -17,7 +12,7 @@ def piece_changed_event():
 
 
 def board_changed_event():
-    ui_tkinter.redraw_board(BOARD_WIDTH, BOARD_HEIGHT, board)
+    ui_tkinter.redraw_board(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board)
 
 
 #===============================================================================
@@ -62,7 +57,7 @@ def rotate_piece():
 
 def drop_piece():
     global py
-    for j in range(py, BOARD_HEIGHT):
+    for j in range(py, boards.BOARD_HEIGHT):
         if collide(pc, px, j + 1, pdir):
             py = j
             break
@@ -83,38 +78,27 @@ def incr_score(value):
 
 
 #===============================================================================
-# collide
+# core function
 #===============================================================================
-"""
-collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
-"""
 def collide(pc, px, py, pdir):
+    """
+    collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
+    """
     assert isinstance(px, int), px
     assert isinstance(py, int), py
     p_shape = pieces.get_piece_shape(pc, pdir)
     for (i, j) in p_shape:
         x = px + i
         y = py + j
-        if not (0 <= x < BOARD_WIDTH):
+        if not (0 <= x < boards.BOARD_WIDTH):
             return True
-        if y >= BOARD_HEIGHT:
+        if y >= boards.BOARD_HEIGHT:
             return True
         if y < 0:
             continue
         if board[y][x] != pieces.EMPTY:
             return True
     return False
-
-
-#===============================================================================
-# board
-#===============================================================================
-def new_board_lines(num):
-    assert isinstance(num, int), num
-    return [[pieces.EMPTY] * BOARD_WIDTH for _ in range(num)]
-
-
-board = new_board_lines(BOARD_HEIGHT)
 
 
 def place_piece():
@@ -127,9 +111,9 @@ def place_piece():
     for i, j in p_shape:
         x = px + i
         y = py + j
-        if not (0 <= x < BOARD_WIDTH):
+        if not (0 <= x < boards.BOARD_WIDTH):
             continue
-        if not (0 <= y < BOARD_HEIGHT):
+        if not (0 <= y < boards.BOARD_HEIGHT):
             continue
         board[y][x] = pc
 
@@ -144,7 +128,7 @@ def clear_complete_lines():
     nb = [l for l in board if pieces.EMPTY in l] # 沒有被填滿的
     s = len(board) - len(nb)
     if s:
-        board = new_board_lines(s) + nb
+        board = boards.create_board_lines(s, pieces.EMPTY) + nb
         board_changed_event()
     return s
 
@@ -245,11 +229,12 @@ def handle_event(e=None):
 # initial
 #===============================================================================
 if __name__ == '__main__':
-    board = new_board_lines(BOARD_HEIGHT)
+    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
     pc, px, py, pdir = pieces.new_piece() # 第一個piece
     score = 0
     valid_keys = NORMAL_KEYS
     pause = False
 
-    ui_tkinter.init_ui(BOARD_WIDTH, BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    # ui
+    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
     ui_tkinter.main_loop()

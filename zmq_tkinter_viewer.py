@@ -9,6 +9,7 @@
 import logging
 import zmq
 
+import boards
 import codec
 import pieces
 import ui_tkinter
@@ -16,18 +17,7 @@ import ui_tkinter
 #===============================================================================
 # global constant
 #===============================================================================
-BOARD_WIDTH = 10
-BOARD_HEIGHT = 20
-
 ZMQ_PUBLISH_ID = 'TETRIS'
-
-
-#===============================================================================
-# board
-#===============================================================================
-def new_board_lines(num):
-    assert isinstance(num, int), num
-    return [[pieces.EMPTY] * BOARD_WIDTH for _ in range(num)]
 
 
 #===============================================================================
@@ -90,7 +80,7 @@ def handle_event(e=None):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    board = new_board_lines(BOARD_HEIGHT)
+    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
     pc, px, py, pdir = (pieces.EMPTY, -4, -4, 0)
 
     context = zmq.Context()
@@ -105,5 +95,5 @@ if __name__ == '__main__':
     poller.register(subscriber, zmq.POLLIN)
 
     # ui
-    ui_tkinter.init_ui(BOARD_WIDTH, BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
+    ui_tkinter.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT, board, pc, px, py, pdir, handle_event)
     ui_tkinter.main_loop()

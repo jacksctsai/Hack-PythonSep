@@ -25,6 +25,7 @@
 
 import time
 
+import boards
 import pieces
 import sound
 import ui
@@ -33,9 +34,6 @@ import ui
 #===============================================================================
 # 設定值
 #===============================================================================
-BOARD_WIDTH = 10
-BOARD_HEIGHT = 20
-
 score, N, T = 0, 100, 0.5
 
 
@@ -66,12 +64,12 @@ def incr_score(value):
 
 
 #===============================================================================
-# collide
+# core function
 #===============================================================================
-"""
-collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
-"""
 def collide(pc, px, py, pdir):
+    """
+    collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
+    """
     assert isinstance(px, int), px
     assert isinstance(py, int), py
     assert isinstance(pdir, int), pdir
@@ -79,26 +77,15 @@ def collide(pc, px, py, pdir):
     for (i, j) in p_shape:
         x = px + i
         y = py + j
-        if not (0 <= x < BOARD_WIDTH):
+        if not (0 <= x < boards.BOARD_WIDTH):
             return True
-        if y >= BOARD_HEIGHT:
+        if y >= boards.BOARD_HEIGHT:
             return True
         if y < 0:
             continue
         if board[y][x] != pieces.EMPTY:
             return True
     return False
-
-
-#===============================================================================
-# board
-#===============================================================================
-def new_board_lines(num):
-    assert isinstance(num, int), num
-    return [[pieces.EMPTY] * BOARD_WIDTH for _ in range(num)]
-
-
-board = new_board_lines(BOARD_HEIGHT)
 
 
 def place_piece(pc, px, py, pdir):
@@ -110,9 +97,9 @@ def place_piece(pc, px, py, pdir):
     for i, j in p_shape:
         x = px + i
         y = py + j
-        if not (0 <= x < BOARD_WIDTH):
+        if not (0 <= x < boards.BOARD_WIDTH):
             continue
-        if not (0 <= y < BOARD_HEIGHT):
+        if not (0 <= y < boards.BOARD_HEIGHT):
             continue
         board[y][x] = pc
 
@@ -131,7 +118,7 @@ def clear_complete_lines():
     if not fn:
         return fn
 
-    board = new_board_lines(len(fn)) + nb
+    board = boards.create_board_lines(len(fn), pieces.EMPTY) + nb
 
     # 消去
     sound.distroy_sound.play()
@@ -140,14 +127,14 @@ def clear_complete_lines():
 
 
 #===============================================================================
-# 
+# action
 #===============================================================================
 def drop_piece():
     """
     py = (j for j in xrange(py, BOARD_HEIGHT) if collide(pc, px, j + 1, pdir)).next()# 找出第一個會碰撞的
     """
     global py
-    for j in range(py, BOARD_HEIGHT):
+    for j in range(py, boards.BOARD_HEIGHT):
         if collide(pc, px, j + 1, pdir):
             py = j
             break
@@ -288,11 +275,15 @@ def tick(t_stamp=[time.time(), 0]):
 
 
 if __name__ == '__main__':
-    ui.init_ui(BOARD_WIDTH, BOARD_HEIGHT)
-    sound.init_sound()
-
+    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
     pc, px, py, pdir = pieces.new_piece()
+
+    # ui
+    ui.init_ui(boards.BOARD_WIDTH, boards.BOARD_HEIGHT)
     ui.new_focus(pc, px, py, pdir)
+
+    # sound
+    sound.init_sound()
 
     while 1: # mainloop
         ui.set_animation_rate(N)
