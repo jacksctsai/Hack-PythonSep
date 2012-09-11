@@ -28,12 +28,6 @@ board_changed = signals.Signal()
 
 
 #===============================================================================
-# piece status
-#===============================================================================
-piece = Piece()
-
-
-#===============================================================================
 # board status
 #===============================================================================
 board_status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
@@ -119,7 +113,7 @@ def collide(pc, px, py, pdir):
     if keys == "Down":
         py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
 """
-def move_piece_left():
+def move_piece_left(piece):
     pc, px, py, pdir = piece.get_status()
     npx = px - 1
     if collide(pc, npx, py, pdir):
@@ -127,7 +121,7 @@ def move_piece_left():
     piece.update_status(pc, npx, py, pdir)
 
 
-def move_piece_right():
+def move_piece_right(piece):
     pc, px, py, pdir = piece.get_status()
     npx = px + 1
     if collide(pc, npx, py, pdir):
@@ -135,7 +129,7 @@ def move_piece_right():
     piece.update_status(pc, npx, py, pdir)
 
 
-def rotate_piece():
+def rotate_piece(piece):
     pc, px, py, pdir = piece.get_status()
     npdir = (pdir + 1) % 4
     if collide(pc, px, py, npdir):
@@ -143,7 +137,7 @@ def rotate_piece():
     piece.update_status(pc, px, py, npdir)
 
 
-def drop_piece():
+def drop_piece(piece):
     pc, px, py, pdir = piece.get_status()
     for j in range(py, boards.BOARD_HEIGHT):
         if collide(pc, px, j + 1, pdir):
@@ -151,7 +145,7 @@ def drop_piece():
             break
 
 
-def place_piece():
+def place_piece(piece):
     """
     for i, j in piece:
         board[j + py][i + px] = pc

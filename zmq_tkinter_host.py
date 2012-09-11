@@ -22,6 +22,12 @@ ZMQ_PUBLISH_ID = 'TETRIS'
 
 
 #===============================================================================
+# status
+#===============================================================================
+piece = tetris_core.Piece()
+
+
+#===============================================================================
 # ZMQ publish
 #===============================================================================
 def publish(msg):
@@ -76,23 +82,29 @@ def quit_game():
 #===============================================================================
 # 鍵盤控制
 #===============================================================================
+drop_piece = lambda: tetris_core.drop_piece(piece)
+rotate_piece = lambda: tetris_core.rotate_piece(piece)
+move_piece_left = lambda: tetris_core.move_piece_left(piece)
+move_piece_right = lambda: tetris_core.move_piece_right(piece)
+
+
 KEY_ACTION_MAP = {
     # switch_pause
     'p': switch_pause,
     # quit_game
     'q': quit_game,
     # drop_piece
-    'down': tetris_core.drop_piece,
-    'j': tetris_core.drop_piece,
+    'down': drop_piece,
+    'j': drop_piece,
     # rotate_piece
-    'up': tetris_core.rotate_piece,
-    'k': tetris_core.rotate_piece,
+    'up': rotate_piece,
+    'k': rotate_piece,
     # move_piece_left
-    'left': tetris_core.move_piece_left,
-    'h': tetris_core.move_piece_left,
+    'left': move_piece_left,
+    'h': move_piece_left,
     # move_piece_right
-    'right': tetris_core.move_piece_right,
-    'l': tetris_core.move_piece_right,
+    'right': move_piece_right,
+    'l': move_piece_right,
 }
 
 
@@ -120,19 +132,19 @@ def handle_event(e=None):
     if pause:
         return
 
-    pc, px, py, pdir = tetris_core.piece.get_status()
+    pc, px, py, pdir = piece.get_status()
     if not tetris_core.collide(pc, px, py + 1, pdir):
-        tetris_core.piece.update_status(pc, px, py + 1, pdir)
+        piece.update_status(pc, px, py + 1, pdir)
         return
 
     if py < 0:
         game_over()
         return
 
-    tetris_core.place_piece()
+    tetris_core.place_piece(piece)
 
     npc, npx, npy, npdir = pieces.new_piece()
-    tetris_core.piece.update_status(npc, npx, npy, npdir)
+    piece.update_status(npc, npx, npy, npdir)
 
     complete_lines = tetris_core.get_complete_lines()
     if not complete_lines:
@@ -151,7 +163,7 @@ if __name__ == '__main__':
     _board = tetris_core.get_board_status()
 
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
-    tetris_core.piece.update_status(_pc, _px, _py, _pdir)
+    piece.update_status(_pc, _px, _py, _pdir)
 
     score = 0
     valid_keys = NORMAL_KEYS
@@ -161,11 +173,11 @@ if __name__ == '__main__':
     publisher = context.socket(zmq.PUB)
     publisher.bind("tcp://*:5556")
 
-    tetris_core.piece.status_changed.connect(publish_piece_info)
+    piece.status_changed.connect(publish_piece_info)
     tetris_core.board_changed.connect(publish_board_info)
 
     # ui
     ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
-    tetris_core.piece.status_changed.connect(ui_tkinter.redraw_piece)
+    piece.status_changed.connect(ui_tkinter.redraw_piece)
     tetris_core.board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

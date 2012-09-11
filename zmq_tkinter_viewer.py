@@ -13,6 +13,7 @@ import boards
 import codec
 import pieces
 import signals
+import tetris_core
 import ui_tkinter
 
 
@@ -23,9 +24,14 @@ ZMQ_PUBLISH_ID = 'TETRIS'
 
 
 #===============================================================================
+# status
+#===============================================================================
+piece = tetris_core.Piece()
+
+
+#===============================================================================
 # signal
 #===============================================================================
-piece_changed = signals.Signal()
 board_changed = signals.Signal()
 
 
@@ -54,8 +60,7 @@ def process_message(msg):
     header = msg[0]
     obj = msg[1]
     if header == codec.PIECE_HEADER:
-        (pc, px, py, pdir) = obj
-        piece_changed.emit(pc, px, py, pdir)
+        piece.update_status(*obj)
 
     elif header == codec.BOARD_HEADER:
         board = obj
@@ -105,6 +110,6 @@ if __name__ == '__main__':
 
     # ui
     ui_tkinter.init_ui(board, pc, px, py, pdir, handle_event)
-    piece_changed.connect(ui_tkinter.redraw_piece)
+    piece.status_changed.connect(ui_tkinter.redraw_piece)
     board_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()
