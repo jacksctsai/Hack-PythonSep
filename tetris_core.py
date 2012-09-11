@@ -61,7 +61,10 @@ class Board(object):
         nb = [line for (idx, line) in enumerate(self.status) if idx not in line_idx_set] # 不要被消除的
         add_num = boards.BOARD_HEIGHT - len(nb)
         self.status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
-        commit_board_status()
+        self.commit_status()
+
+    def commit_status(self):
+        self.status_changed.emit(self.status)
 
 
 #===============================================================================
@@ -73,8 +76,7 @@ board = Board()
 
 
 
-def commit_board_status():
-    board.status_changed.emit(board.status)
+
 
 
 
@@ -162,4 +164,4 @@ def place_piece(piece):
         if not (0 <= y < boards.BOARD_HEIGHT):
             continue
         board.change_piece(x, y, pc)
-    commit_board_status()
+    board.commit_status()
