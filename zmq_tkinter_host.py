@@ -146,7 +146,7 @@ def handle_event(e=None):
     npc, npx, npy, npdir = pieces.new_piece()
     piece.update_status(npc, npx, npy, npdir)
 
-    complete_lines = tetris_core.get_complete_lines()
+    complete_lines = tetris_core.board.get_complete_lines()
     if not complete_lines:
         return
 

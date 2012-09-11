@@ -52,16 +52,15 @@ class Board(object):
         self.status[y][x] = pc
         return True
 
+    def get_complete_lines(self):
+        line_idx_list = [idx for (idx, line) in enumerate(self.status) if pieces.EMPTY not in line]
+        return line_idx_list
+
 
 #===============================================================================
 # board status
 #===============================================================================
 board = Board()
-
-
-def get_complete_lines():
-    line_idx_list = [idx for (idx, line) in enumerate(board.status) if pieces.EMPTY not in line]
-    return line_idx_list
 
 
 def strip_board_lines(line_idx_list):

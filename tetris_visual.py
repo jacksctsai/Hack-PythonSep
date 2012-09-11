@@ -147,7 +147,7 @@ def tick(t_stamp=[time.time(), 0]):
             tetris_core.place_piece(piece)
 
             # 檢查消去
-            complete_lines = tetris_core.get_complete_lines()
+            complete_lines = tetris_core.board.get_complete_lines()
             if complete_lines:
                 # 消去
                 sound.distroy_sound.play()
