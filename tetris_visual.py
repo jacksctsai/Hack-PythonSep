@@ -123,7 +123,7 @@ def tick(t_stamp=[time.time(), 0]):
     # 自動處理
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
-        pc, px, py, pdir = tetris_core.get_piece_status()
+        pc, px, py, pdir = tetris_core.piece.get_status()
         if not tetris_core.collide(pc, px, py + 1, pdir): #自動落下
             tetris_core.piece.update_status(pc, px, py + 1, pdir)
 

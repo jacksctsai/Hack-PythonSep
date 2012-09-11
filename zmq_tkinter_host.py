@@ -120,7 +120,7 @@ def handle_event(e=None):
     if pause:
         return
 
-    pc, px, py, pdir = tetris_core.get_piece_status()
+    pc, px, py, pdir = tetris_core.piece.get_status()
     if not tetris_core.collide(pc, px, py + 1, pdir):
         tetris_core.piece.update_status(pc, px, py + 1, pdir)
         return
