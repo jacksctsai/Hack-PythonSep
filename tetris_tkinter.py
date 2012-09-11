@@ -8,6 +8,7 @@ import ui_tkinter
 # status
 #===============================================================================
 piece = tetris_core.Piece()
+board = tetris_core.Board()
 
 
 #===============================================================================
@@ -48,10 +49,10 @@ def quit_game():
 #===============================================================================
 # 鍵盤控制
 #===============================================================================
-drop_piece = lambda: tetris_core.drop_piece(piece)
-rotate_piece = lambda: tetris_core.rotate_piece(piece)
-move_piece_left = lambda: tetris_core.move_piece_left(piece)
-move_piece_right = lambda: tetris_core.move_piece_right(piece)
+drop_piece = lambda: tetris_core.drop_piece(piece, board)
+rotate_piece = lambda: tetris_core.rotate_piece(piece, board)
+move_piece_left = lambda: tetris_core.move_piece_left(piece, board)
+move_piece_right = lambda: tetris_core.move_piece_right(piece, board)
 
 
 KEY_ACTION_MAP = {
@@ -99,7 +100,7 @@ def handle_event(e=None):
         return
 
     pc, px, py, pdir = piece.get_status()
-    if not tetris_core.collide(pc, px, py + 1, pdir):
+    if not tetris_core.collide(pc, px, py + 1, pdir, board):
         piece.update_status(pc, px, py + 1, pdir)
         return
 
@@ -107,16 +108,16 @@ def handle_event(e=None):
         game_over()
         return
 
-    tetris_core.place_piece(piece)
+    tetris_core.place_piece(piece, board)
 
     npc, npx, npy, npdir = pieces.new_piece()
     piece.update_status(npc, npx, npy, npdir)
 
-    complete_lines = tetris_core.board.get_complete_lines()
+    complete_lines = board.get_complete_lines()
     if not complete_lines:
         return
 
-    tetris_core.board.strip_board_lines(complete_lines)
+    board.strip_board_lines(complete_lines)
     incr_score(2 ** len(complete_lines))
 
 
@@ -124,7 +125,7 @@ def handle_event(e=None):
 # initial
 #===============================================================================
 if __name__ == '__main__':
-    _board = tetris_core.board.get_status()
+    _board_status = board.get_status()
 
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     piece.update_status(_pc, _px, _py, _pdir)
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     pause = False
 
     # ui
-    ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
+    ui_tkinter.init_ui(_board_status, _pc, _px, _py, _pdir, handle_event)
     piece.status_changed.connect(ui_tkinter.redraw_piece)
-    tetris_core.board.status_changed.connect(ui_tkinter.redraw_board)
+    board.status_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

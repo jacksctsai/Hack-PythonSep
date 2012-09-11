@@ -68,22 +68,9 @@ class Board(object):
 
 
 #===============================================================================
-# board status
-#===============================================================================
-board = Board()
-
-
-
-
-
-
-
-
-
-#===============================================================================
 # collide
 #===============================================================================
-def collide(pc, px, py, pdir):
+def collide(pc, px, py, pdir, board):
     """
     collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
     """
@@ -117,39 +104,39 @@ def collide(pc, px, py, pdir):
     if keys == "Down":
         py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
 """
-def move_piece_left(piece):
+def move_piece_left(piece, board):
     pc, px, py, pdir = piece.get_status()
     npx = px - 1
-    if collide(pc, npx, py, pdir):
+    if collide(pc, npx, py, pdir, board):
         return
     piece.update_status(pc, npx, py, pdir)
 
 
-def move_piece_right(piece):
+def move_piece_right(piece, board):
     pc, px, py, pdir = piece.get_status()
     npx = px + 1
-    if collide(pc, npx, py, pdir):
+    if collide(pc, npx, py, pdir, board):
         return
     piece.update_status(pc, npx, py, pdir)
 
 
-def rotate_piece(piece):
+def rotate_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     npdir = (pdir + 1) % 4
-    if collide(pc, px, py, npdir):
+    if collide(pc, px, py, npdir, board):
         return
     piece.update_status(pc, px, py, npdir)
 
 
-def drop_piece(piece):
+def drop_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     for j in range(py, boards.BOARD_HEIGHT):
-        if collide(pc, px, j + 1, pdir):
+        if collide(pc, px, j + 1, pdir, board):
             piece.update_status(pc, px, j, pdir)
             break
 
 
-def place_piece(piece):
+def place_piece(piece, board):
     """
     for i, j in piece:
         board[j + py][i + px] = pc
