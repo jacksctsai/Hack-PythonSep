@@ -90,9 +90,34 @@ def decode_board(*args):
 
 
 #===============================================================================
+# codec : score
+#===============================================================================
+SCORE_HEADER = 'SCORE'
+def encode_score(score):
+    code_str = '%s %s' % (SCORE_HEADER, score)
+    return code_str
+
+
+def decode_score(*args):
+    _log = logging.getLogger('decode_score')
+    if len(args) != 1:
+        _log.error('[DECODE] fail to decode score -- invalid args [%s]' % ' '.join(args))
+        return
+
+    try:
+        score = int(args[0])
+    except ValueError:
+        _log.error('[DECODE] fail to decode score -- invalid format in args [%s]' % ' '.join(args))
+        return
+
+    return score
+
+
+#===============================================================================
 # decode table
 #===============================================================================
 HEADER_DECODE_TABLE = {
     PIECE_HEADER: decode_piece,
     BOARD_HEADER: decode_board,
+    SCORE_HEADER: decode_score,
 }
