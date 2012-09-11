@@ -22,6 +22,14 @@ class Piece(object):
 
 
 #===============================================================================
+# Board
+#===============================================================================
+class Board(object):
+    def __init__(self):
+        self.status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+
+
+#===============================================================================
 # signal
 #===============================================================================
 board_changed = signals.Signal()
@@ -30,10 +38,10 @@ board_changed = signals.Signal()
 #===============================================================================
 # board status
 #===============================================================================
-board_status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+board = Board()
 
 def get_board_status():
-    return board_status
+    return board.status
 
 
 def is_piece_on_board(x, y, pc):
@@ -41,7 +49,7 @@ def is_piece_on_board(x, y, pc):
     assert isinstance(y, int), y
     assert (0 <= x < boards.BOARD_WIDTH), x
     assert (0 <= y < boards.BOARD_HEIGHT), y
-    return (pc == board_status[y][x])
+    return (pc == board.status[y][x])
 
 
 def change_piece_on_board(x, y, pc):
@@ -51,28 +59,27 @@ def change_piece_on_board(x, y, pc):
         return False
     if not (0 <= y < boards.BOARD_HEIGHT):
         return False
-    if pc == board_status[y][x]:
+    if pc == board.status[y][x]:
         return False
-    board_status[y][x] = pc
+    board.status[y][x] = pc
     return True
 
 
 def get_complete_lines():
-    line_idx_list = [idx for (idx, line) in enumerate(board_status) if pieces.EMPTY not in line]
+    line_idx_list = [idx for (idx, line) in enumerate(board.status) if pieces.EMPTY not in line]
     return line_idx_list
 
 
 def strip_board_lines(line_idx_list):
-    global board_status
     line_idx_set = set(line_idx_list)
-    nb = [line for (idx, line) in enumerate(board_status) if idx not in line_idx_set] # 不要被消除的
+    nb = [line for (idx, line) in enumerate(board.status) if idx not in line_idx_set] # 不要被消除的
     add_num = boards.BOARD_HEIGHT - len(nb)
-    board_status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
+    board.status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
     commit_board_status()
 
 
 def commit_board_status():
-    board_changed.emit(board_status)
+    board_changed.emit(board.status)
 
 
 
