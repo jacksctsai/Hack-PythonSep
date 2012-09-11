@@ -26,6 +26,7 @@ ZMQ_PUBLISH_ID = 'TETRIS'
 #===============================================================================
 piece = tetris_core.Piece()
 board = tetris_core.Board()
+score = tetris_core.Score()
 
 
 #===============================================================================
@@ -45,17 +46,9 @@ def publish_board_info(board):
     publish(code_str)
 
 
-#===============================================================================
-# score
-#===============================================================================
-def get_score():
-    return score
-
-
-def incr_score(value):
-    global score
-    assert isinstance(value, int), value
-    score += value
+def publish_score_info(score):
+    code_str = codec.encode_score(score)
+    publish(code_str)
 
 
 #===============================================================================
@@ -72,7 +65,7 @@ def switch_pause():
 
 
 def game_over():
-    print "GAME OVER: score %i" % get_score() # game over 的狀況
+    print "GAME OVER: score %i" % score.get_score() # game over 的狀況
     quit_game()
 
 
@@ -152,7 +145,7 @@ def handle_event(e=None):
         return
 
     board.strip_board_lines(complete_lines)
-    incr_score(2 ** len(complete_lines))
+    score.incr_score(2 ** len(complete_lines))
 
 
 #===============================================================================
@@ -166,7 +159,6 @@ if __name__ == '__main__':
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     piece.update_status(_pc, _px, _py, _pdir)
 
-    score = 0
     valid_keys = NORMAL_KEYS
     pause = False
 
@@ -174,11 +166,15 @@ if __name__ == '__main__':
     publisher = context.socket(zmq.PUB)
     publisher.bind("tcp://*:5556")
 
-    piece.status_changed.connect(publish_piece_info)
-    board.status_changed.connect(publish_board_info)
-
     # ui
     ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
+
+    # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
+    piece.status_changed.connect(publish_piece_info)
     board.status_changed.connect(ui_tkinter.redraw_board)
+    board.status_changed.connect(publish_board_info)
+    score.value_changed.connect(publish_score_info)
+
+    # main loop
     ui_tkinter.main_loop()

@@ -41,6 +41,15 @@ class TestCodec(unittest.TestCase):
 
         self.assertEqual(result, expect)
 
+    def test_score_codec(self):
+        score = 10
+        expect = codec.SCORE_HEADER, score
+
+        code_str = codec.encode_score(score)
+        result = codec.decode(code_str)
+
+        self.assertEqual(result, expect)
+
 
 if __name__ == "__main__":
 #    import sys;sys.argv = ['TestCodec', 'Test.test_piece_codec']

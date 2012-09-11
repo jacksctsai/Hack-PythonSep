@@ -34,7 +34,7 @@ import ui
 #===============================================================================
 # 設定值
 #===============================================================================
-score, N, T = 0, 100, 0.5
+N, T = 100, 0.5
 
 
 #===============================================================================
@@ -42,24 +42,7 @@ score, N, T = 0, 100, 0.5
 #===============================================================================
 piece = tetris_core.Piece()
 board = tetris_core.Board()
-
-
-#===============================================================================
-# score
-#===============================================================================
-def reset_score():
-    global score
-    score = 0
-
-
-def get_score():
-    return score
-
-
-def incr_score(value):
-    global score
-    assert isinstance(value, int), value
-    score += value
+score = tetris_core.Score()
 
 
 #===============================================================================
@@ -79,7 +62,7 @@ def is_pause():
 
 
 def game_over():
-    print "GAME OVER: score %i" % get_score() # game over 的狀況
+    print "GAME OVER: score %i" % score.get_score() # game over 的狀況
     quit_game()
 
 
@@ -154,7 +137,7 @@ def tick(t_stamp=[time.time(), 0]):
                 sound.distroy_sound.play()
                 board.strip_board_lines(complete_lines)
                 ui.clear_ui_lines(complete_lines)
-                incr_score(2 ** len(complete_lines))
+                score.incr_score(2 ** len(complete_lines))
 
             pc, px, py, pdir = pieces.new_piece()
             ui.new_focus(pc, px, py, pdir)
