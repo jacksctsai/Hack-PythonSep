@@ -5,6 +5,14 @@ import signals
 
 
 #===============================================================================
+# Piece
+#===============================================================================
+class Piece(object):
+    def __init__(self):
+        self.status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+
+
+#===============================================================================
 # signal
 #===============================================================================
 piece_changed = signals.Signal()
@@ -14,16 +22,15 @@ board_changed = signals.Signal()
 #===============================================================================
 # piece status
 #===============================================================================
-piece_status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+piece = Piece()
 
 def update_piece_status(pc, px, py, pdir):
-    global piece_status
-    piece_status = (pc, px, py, pdir)
-    piece_changed.emit(*piece_status)
+    piece.status = (pc, px, py, pdir)
+    piece_changed.emit(*piece.status)
 
 
 def get_piece_status():
-    return piece_status
+    return piece.status
 
 
 #===============================================================================
