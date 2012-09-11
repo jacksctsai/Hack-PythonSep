@@ -33,6 +33,10 @@ class Board(object):
     def get_status(self):
         return self.status
 
+    def update_status(self, board_status):
+        self.status = board_status
+        self.status_changed.emit(self.status)
+
     def is_piece_on_board(self, x, y, pc):
         assert isinstance(x, int), x
         assert isinstance(y, int), y

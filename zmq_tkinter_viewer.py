@@ -9,10 +9,7 @@
 import logging
 import zmq
 
-import boards
 import codec
-import pieces
-import signals
 import tetris_core
 import ui_tkinter
 
@@ -27,12 +24,7 @@ ZMQ_PUBLISH_ID = 'TETRIS'
 # status
 #===============================================================================
 piece = tetris_core.Piece()
-
-
-#===============================================================================
-# signal
-#===============================================================================
-board_changed = signals.Signal()
+board = tetris_core.Board()
 
 
 #===============================================================================
@@ -63,8 +55,7 @@ def process_message(msg):
         piece.update_status(*obj)
 
     elif header == codec.BOARD_HEADER:
-        board = obj
-        board_changed.emit(board)
+        board.update_status(obj)
 
 
 def polling():
@@ -94,8 +85,8 @@ def handle_event(e=None):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    board = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
-    pc, px, py, pdir = (pieces.EMPTY, -4, -4, 0)
+    _board_status = board.get_status()
+    _pc, _px, _py, _pdir = piece.get_status()
 
     context = zmq.Context()
 
@@ -109,7 +100,7 @@ if __name__ == '__main__':
     poller.register(subscriber, zmq.POLLIN)
 
     # ui
-    ui_tkinter.init_ui(board, pc, px, py, pdir, handle_event)
+    ui_tkinter.init_ui(_board_status, _pc, _px, _py, _pdir, handle_event)
     piece.status_changed.connect(ui_tkinter.redraw_piece)
-    board_changed.connect(ui_tkinter.redraw_board)
+    board.status_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()
