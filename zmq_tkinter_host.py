@@ -46,6 +46,11 @@ def publish_board_info(board):
     publish(code_str)
 
 
+def publish_score_info(score):
+    code_str = codec.encode_score(score)
+    publish(code_str)
+
+
 #===============================================================================
 # 
 #===============================================================================
@@ -161,11 +166,15 @@ if __name__ == '__main__':
     publisher = context.socket(zmq.PUB)
     publisher.bind("tcp://*:5556")
 
-    piece.status_changed.connect(publish_piece_info)
-    board.status_changed.connect(publish_board_info)
-
     # ui
     ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
+
+    # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
+    piece.status_changed.connect(publish_piece_info)
     board.status_changed.connect(ui_tkinter.redraw_board)
+    board.status_changed.connect(publish_board_info)
+    score.value_changed.connect(publish_score_info)
+
+    # main loop
     ui_tkinter.main_loop()

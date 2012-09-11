@@ -25,6 +25,7 @@ ZMQ_PUBLISH_ID = 'TETRIS'
 #===============================================================================
 piece = tetris_core.Piece()
 board = tetris_core.Board()
+score = tetris_core.Score()
 
 
 #===============================================================================
@@ -42,6 +43,10 @@ def key_event(e=None):
 #===============================================================================
 # 
 #===============================================================================
+def show_score(value):
+    print 'score: %s' % value
+
+
 def process_message(msg):
     _log = logging.getLogger('process_msg')
     _log.debug('[MESSAGE] %s' % `msg`)
@@ -53,9 +58,10 @@ def process_message(msg):
     obj = msg[1]
     if header == codec.PIECE_HEADER:
         piece.update_status(*obj)
-
     elif header == codec.BOARD_HEADER:
         board.update_status(obj)
+    elif header == codec.SCORE_HEADER:
+        score.update_value(obj)
 
 
 def polling():
@@ -101,6 +107,11 @@ if __name__ == '__main__':
 
     # ui
     ui_tkinter.init_ui(_board_status, _pc, _px, _py, _pdir, handle_event)
+
+    # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
     board.status_changed.connect(ui_tkinter.redraw_board)
+    score.value_changed.connect(show_score)
+
+    # main loop
     ui_tkinter.main_loop()
