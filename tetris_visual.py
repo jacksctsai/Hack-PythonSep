@@ -38,6 +38,12 @@ score, N, T = 0, 100, 0.5
 
 
 #===============================================================================
+# status
+#===============================================================================
+piece = tetris_core.Piece()
+
+
+#===============================================================================
 # score
 #===============================================================================
 def reset_score():
@@ -84,23 +90,29 @@ def quit_game():
 #===============================================================================
 # 鍵盤控制
 #===============================================================================
+drop_piece = lambda: tetris_core.drop_piece(piece)
+rotate_piece = lambda: tetris_core.rotate_piece(piece)
+move_piece_left = lambda: tetris_core.move_piece_left(piece)
+move_piece_right = lambda: tetris_core.move_piece_right(piece)
+
+
 KEY_ACTION_MAP = {
     # switch_pause
     'p': switch_pause,
     # quit_game
     'q': quit_game,
     # drop_piece
-    'down': tetris_core.drop_piece,
-    'j': tetris_core.drop_piece,
+    'down': drop_piece,
+    'j': drop_piece,
     # rotate_piece
-    'up': tetris_core.rotate_piece,
-    'k': tetris_core.rotate_piece,
+    'up': rotate_piece,
+    'k': rotate_piece,
     # move_piece_left
-    'left': tetris_core.move_piece_left,
-    'h': tetris_core.move_piece_left,
+    'left': move_piece_left,
+    'h': move_piece_left,
     # move_piece_right
-    'right': tetris_core.move_piece_right,
-    'l': tetris_core.move_piece_right,
+    'right': move_piece_right,
+    'l': move_piece_right,
 }
 
 
@@ -123,16 +135,16 @@ def tick(t_stamp=[time.time(), 0]):
     # 自動處理
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
-        pc, px, py, pdir = tetris_core.get_piece_status()
+        pc, px, py, pdir = piece.get_status()
         if not tetris_core.collide(pc, px, py + 1, pdir): #自動落下
-            tetris_core.update_piece_status(pc, px, py + 1, pdir)
+            piece.update_status(pc, px, py + 1, pdir)
 
         elif py < 0: #Game over
             game_over()
             return
 
         else:  #到底
-            tetris_core.place_piece()
+            tetris_core.place_piece(piece)
 
             # 檢查消去
             complete_lines = tetris_core.get_complete_lines()
@@ -145,7 +157,7 @@ def tick(t_stamp=[time.time(), 0]):
 
             pc, px, py, pdir = pieces.new_piece()
             ui.new_focus(pc, px, py, pdir)
-            tetris_core.update_piece_status(pc, px, py, pdir)
+            piece.update_status(pc, px, py, pdir)
 
         t_stamp[0] = t_stamp[1]
 
@@ -155,13 +167,13 @@ def tick(t_stamp=[time.time(), 0]):
 
 
 if __name__ == '__main__':
-    _pc, _px, _py, _pdir = pieces.new_piece()
-    tetris_core.update_piece_status(_pc, _px, _py, _pdir)
+    _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
+    piece.update_status(_pc, _px, _py, _pdir)
     valid_keys = NORMAL_KEYS
 
     # ui
     ui.init_ui()
-    tetris_core.piece_changed.connect(ui.update_focus) # 方塊位置變更
+    piece.status_changed.connect(ui.update_focus) # 方塊位置變更
     ui.new_focus(_pc, _px, _py, _pdir)
 
     # sound
