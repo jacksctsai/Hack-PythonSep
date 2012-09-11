@@ -33,19 +33,18 @@ class Board(object):
     def get_status(self):
         return self.status
 
+    def is_piece_on_board(self, x, y, pc):
+        assert isinstance(x, int), x
+        assert isinstance(y, int), y
+        assert (0 <= x < boards.BOARD_WIDTH), x
+        assert (0 <= y < boards.BOARD_HEIGHT), y
+        return (pc == self.status[y][x])
+
 
 #===============================================================================
 # board status
 #===============================================================================
 board = Board()
-
-def is_piece_on_board(x, y, pc):
-    assert isinstance(x, int), x
-    assert isinstance(y, int), y
-    assert (0 <= x < boards.BOARD_WIDTH), x
-    assert (0 <= y < boards.BOARD_HEIGHT), y
-    return (pc == board.status[y][x])
-
 
 def change_piece_on_board(x, y, pc):
     assert isinstance(x, int), x
@@ -97,7 +96,7 @@ def collide(pc, px, py, pdir):
             return True
         if y < 0:
             continue
-        if not is_piece_on_board(x, y, pieces.EMPTY):
+        if not board.is_piece_on_board(x, y, pieces.EMPTY):
             return True
     return False
 
