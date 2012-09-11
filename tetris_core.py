@@ -8,12 +8,14 @@ import signals
 # Piece
 #===============================================================================
 class Piece(object):
+    status_changed = signals.Signal()
+
     def __init__(self):
         self.status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
 
     def update_status(self, pc, px, py, pdir):
         self.status = (pc, px, py, pdir)
-        piece_changed.emit(*self.status)
+        self.status_changed.emit(*self.status)
 
     def get_status(self):
         return self.status
@@ -22,7 +24,6 @@ class Piece(object):
 #===============================================================================
 # signal
 #===============================================================================
-piece_changed = signals.Signal()
 board_changed = signals.Signal()
 
 

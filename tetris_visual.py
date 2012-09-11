@@ -161,7 +161,7 @@ if __name__ == '__main__':
 
     # ui
     ui.init_ui()
-    tetris_core.piece_changed.connect(ui.update_focus) # 方塊位置變更
+    tetris_core.piece.status_changed.connect(ui.update_focus) # 方塊位置變更
     ui.new_focus(_pc, _px, _py, _pdir)
 
     # sound
