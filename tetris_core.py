@@ -72,6 +72,28 @@ class Board(object):
 
 
 #===============================================================================
+# Score
+#===============================================================================
+class Score(object):
+    value_changed = signals.Signal()
+
+    def __init__(self):
+        self._value = 0
+
+    def get_score(self):
+        return self._value
+
+    def reset_score(self):
+        self._value = 0
+        self.value_changed.emit(self._value)
+
+    def incr_score(self, value):
+        assert isinstance(value, int), value
+        self._value += value
+        self.value_changed.emit(self._value)
+
+
+#===============================================================================
 # collide
 #===============================================================================
 def collide(pc, px, py, pdir, board):

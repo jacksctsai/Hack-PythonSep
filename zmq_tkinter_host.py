@@ -26,6 +26,7 @@ ZMQ_PUBLISH_ID = 'TETRIS'
 #===============================================================================
 piece = tetris_core.Piece()
 board = tetris_core.Board()
+score = tetris_core.Score()
 
 
 #===============================================================================
@@ -46,19 +47,6 @@ def publish_board_info(board):
 
 
 #===============================================================================
-# score
-#===============================================================================
-def get_score():
-    return score
-
-
-def incr_score(value):
-    global score
-    assert isinstance(value, int), value
-    score += value
-
-
-#===============================================================================
 # 
 #===============================================================================
 def switch_pause():
@@ -72,7 +60,7 @@ def switch_pause():
 
 
 def game_over():
-    print "GAME OVER: score %i" % get_score() # game over 的狀況
+    print "GAME OVER: score %i" % score.get_score() # game over 的狀況
     quit_game()
 
 
@@ -152,7 +140,7 @@ def handle_event(e=None):
         return
 
     board.strip_board_lines(complete_lines)
-    incr_score(2 ** len(complete_lines))
+    score.incr_score(2 ** len(complete_lines))
 
 
 #===============================================================================
@@ -166,7 +154,6 @@ if __name__ == '__main__':
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     piece.update_status(_pc, _px, _py, _pdir)
 
-    score = 0
     valid_keys = NORMAL_KEYS
     pause = False
 
