@@ -25,17 +25,13 @@ class Piece(object):
 # Board
 #===============================================================================
 class Board(object):
+    status_changed = signals.Signal()
+
     def __init__(self):
         self.status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
 
     def get_status(self):
         return self.status
-
-
-#===============================================================================
-# signal
-#===============================================================================
-board_changed = signals.Signal()
 
 
 #===============================================================================
@@ -78,7 +74,7 @@ def strip_board_lines(line_idx_list):
 
 
 def commit_board_status():
-    board_changed.emit(board.status)
+    board.status_changed.emit(board.status)
 
 
 

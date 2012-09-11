@@ -136,5 +136,5 @@ if __name__ == '__main__':
     # ui
     ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
     piece.status_changed.connect(ui_tkinter.redraw_piece)
-    tetris_core.board_changed.connect(ui_tkinter.redraw_board)
+    tetris_core.board.status_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()
