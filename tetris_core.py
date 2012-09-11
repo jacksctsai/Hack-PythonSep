@@ -40,23 +40,23 @@ class Board(object):
         assert (0 <= y < boards.BOARD_HEIGHT), y
         return (pc == self.status[y][x])
 
+    def change_piece(self, x, y, pc):
+        assert isinstance(x, int), x
+        assert isinstance(y, int), y
+        if not (0 <= x < boards.BOARD_WIDTH):
+            return False
+        if not (0 <= y < boards.BOARD_HEIGHT):
+            return False
+        if pc == self.status[y][x]:
+            return False
+        self.status[y][x] = pc
+        return True
+
 
 #===============================================================================
 # board status
 #===============================================================================
 board = Board()
-
-def change_piece_on_board(x, y, pc):
-    assert isinstance(x, int), x
-    assert isinstance(y, int), y
-    if not (0 <= x < boards.BOARD_WIDTH):
-        return False
-    if not (0 <= y < boards.BOARD_HEIGHT):
-        return False
-    if pc == board.status[y][x]:
-        return False
-    board.status[y][x] = pc
-    return True
 
 
 def get_complete_lines():
@@ -160,5 +160,5 @@ def place_piece(piece):
             continue
         if not (0 <= y < boards.BOARD_HEIGHT):
             continue
-        change_piece_on_board(x, y, pc)
+        board.change_piece(x, y, pc)
     commit_board_status()
