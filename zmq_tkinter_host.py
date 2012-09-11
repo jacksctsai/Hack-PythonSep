@@ -160,7 +160,7 @@ def handle_event(e=None):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    _board = tetris_core.get_board_status()
+    _board = tetris_core.board.get_status()
 
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     piece.update_status(_pc, _px, _py, _pdir)

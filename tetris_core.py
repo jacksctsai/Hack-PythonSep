@@ -28,6 +28,9 @@ class Board(object):
     def __init__(self):
         self.status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
 
+    def get_status(self):
+        return self.status
+
 
 #===============================================================================
 # signal
@@ -39,10 +42,6 @@ board_changed = signals.Signal()
 # board status
 #===============================================================================
 board = Board()
-
-def get_board_status():
-    return board.status
-
 
 def is_piece_on_board(x, y, pc):
     assert isinstance(x, int), x
