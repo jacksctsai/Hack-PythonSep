@@ -88,7 +88,7 @@ def handle_event(e=None):
 
     pc, px, py, pdir = tetris_core.get_piece_status()
     if not tetris_core.collide(pc, px, py + 1, pdir):
-        tetris_core.update_piece_status(pc, px, py + 1, pdir)
+        tetris_core.piece.update_status(pc, px, py + 1, pdir)
         return
 
     if py < 0:
@@ -98,7 +98,7 @@ def handle_event(e=None):
     tetris_core.place_piece()
 
     npc, npx, npy, npdir = pieces.new_piece()
-    tetris_core.update_piece_status(npc, npx, npy, npdir)
+    tetris_core.piece.update_status(npc, npx, npy, npdir)
 
     complete_lines = tetris_core.get_complete_lines()
     if not complete_lines:
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     _board = tetris_core.get_board_status()
 
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
-    tetris_core.update_piece_status(_pc, _px, _py, _pdir)
+    tetris_core.piece.update_status(_pc, _px, _py, _pdir)
 
     score = 0
     valid_keys = NORMAL_KEYS

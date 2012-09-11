@@ -11,6 +11,10 @@ class Piece(object):
     def __init__(self):
         self.status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
 
+    def update_status(self, pc, px, py, pdir):
+        self.status = (pc, px, py, pdir)
+        piece_changed.emit(*self.status)
+
 
 #===============================================================================
 # signal
@@ -23,11 +27,6 @@ board_changed = signals.Signal()
 # piece status
 #===============================================================================
 piece = Piece()
-
-def update_piece_status(pc, px, py, pdir):
-    piece.status = (pc, px, py, pdir)
-    piece_changed.emit(*piece.status)
-
 
 def get_piece_status():
     return piece.status
@@ -124,7 +123,7 @@ def move_piece_left():
     npx = px - 1
     if collide(pc, npx, py, pdir):
         return
-    update_piece_status(pc, npx, py, pdir)
+    piece.update_status(pc, npx, py, pdir)
 
 
 def move_piece_right():
@@ -132,7 +131,7 @@ def move_piece_right():
     npx = px + 1
     if collide(pc, npx, py, pdir):
         return
-    update_piece_status(pc, npx, py, pdir)
+    piece.update_status(pc, npx, py, pdir)
 
 
 def rotate_piece():
@@ -140,14 +139,14 @@ def rotate_piece():
     npdir = (pdir + 1) % 4
     if collide(pc, px, py, npdir):
         return
-    update_piece_status(pc, px, py, npdir)
+    piece.update_status(pc, px, py, npdir)
 
 
 def drop_piece():
     pc, px, py, pdir = get_piece_status()
     for j in range(py, boards.BOARD_HEIGHT):
         if collide(pc, px, j + 1, pdir):
-            update_piece_status(pc, px, j, pdir)
+            piece.update_status(pc, px, j, pdir)
             break
 
 

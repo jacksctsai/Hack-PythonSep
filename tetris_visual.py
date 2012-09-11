@@ -125,7 +125,7 @@ def tick(t_stamp=[time.time(), 0]):
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
         pc, px, py, pdir = tetris_core.get_piece_status()
         if not tetris_core.collide(pc, px, py + 1, pdir): #自動落下
-            tetris_core.update_piece_status(pc, px, py + 1, pdir)
+            tetris_core.piece.update_status(pc, px, py + 1, pdir)
 
         elif py < 0: #Game over
             game_over()
@@ -145,7 +145,7 @@ def tick(t_stamp=[time.time(), 0]):
 
             pc, px, py, pdir = pieces.new_piece()
             ui.new_focus(pc, px, py, pdir)
-            tetris_core.update_piece_status(pc, px, py, pdir)
+            tetris_core.piece.update_status(pc, px, py, pdir)
 
         t_stamp[0] = t_stamp[1]
 
@@ -156,7 +156,7 @@ def tick(t_stamp=[time.time(), 0]):
 
 if __name__ == '__main__':
     _pc, _px, _py, _pdir = pieces.new_piece()
-    tetris_core.update_piece_status(_pc, _px, _py, _pdir)
+    tetris_core.piece.update_status(_pc, _px, _py, _pdir)
     valid_keys = NORMAL_KEYS
 
     # ui
