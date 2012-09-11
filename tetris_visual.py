@@ -41,6 +41,7 @@ score, N, T = 0, 100, 0.5
 # status
 #===============================================================================
 piece = tetris_core.Piece()
+board = tetris_core.Board()
 
 
 #===============================================================================
@@ -90,10 +91,10 @@ def quit_game():
 #===============================================================================
 # 鍵盤控制
 #===============================================================================
-drop_piece = lambda: tetris_core.drop_piece(piece)
-rotate_piece = lambda: tetris_core.rotate_piece(piece)
-move_piece_left = lambda: tetris_core.move_piece_left(piece)
-move_piece_right = lambda: tetris_core.move_piece_right(piece)
+drop_piece = lambda: tetris_core.drop_piece(piece, board)
+rotate_piece = lambda: tetris_core.rotate_piece(piece, board)
+move_piece_left = lambda: tetris_core.move_piece_left(piece, board)
+move_piece_right = lambda: tetris_core.move_piece_right(piece, board)
 
 
 KEY_ACTION_MAP = {
@@ -136,7 +137,7 @@ def tick(t_stamp=[time.time(), 0]):
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
         pc, px, py, pdir = piece.get_status()
-        if not tetris_core.collide(pc, px, py + 1, pdir): #自動落下
+        if not tetris_core.collide(pc, px, py + 1, pdir, board): #自動落下
             piece.update_status(pc, px, py + 1, pdir)
 
         elif py < 0: #Game over
@@ -144,14 +145,14 @@ def tick(t_stamp=[time.time(), 0]):
             return
 
         else:  #到底
-            tetris_core.place_piece(piece)
+            tetris_core.place_piece(piece, board)
 
             # 檢查消去
-            complete_lines = tetris_core.get_complete_lines()
+            complete_lines = board.get_complete_lines()
             if complete_lines:
                 # 消去
                 sound.distroy_sound.play()
-                tetris_core.strip_board_lines(complete_lines)
+                board.strip_board_lines(complete_lines)
                 ui.clear_ui_lines(complete_lines)
                 incr_score(2 ** len(complete_lines))
 

@@ -22,64 +22,59 @@ class Piece(object):
 
 
 #===============================================================================
-# signal
+# Board
 #===============================================================================
-board_changed = signals.Signal()
+class Board(object):
+    status_changed = signals.Signal()
 
+    def __init__(self):
+        self.status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
 
-#===============================================================================
-# board status
-#===============================================================================
-board_status = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
+    def get_status(self):
+        return self.status
 
-def get_board_status():
-    return board_status
+    def update_status(self, board_status):
+        self.status = board_status
+        self.status_changed.emit(self.status)
 
+    def is_piece_on_board(self, x, y, pc):
+        assert isinstance(x, int), x
+        assert isinstance(y, int), y
+        assert (0 <= x < boards.BOARD_WIDTH), x
+        assert (0 <= y < boards.BOARD_HEIGHT), y
+        return (pc == self.status[y][x])
 
-def is_piece_on_board(x, y, pc):
-    assert isinstance(x, int), x
-    assert isinstance(y, int), y
-    assert (0 <= x < boards.BOARD_WIDTH), x
-    assert (0 <= y < boards.BOARD_HEIGHT), y
-    return (pc == board_status[y][x])
+    def change_piece(self, x, y, pc):
+        assert isinstance(x, int), x
+        assert isinstance(y, int), y
+        if not (0 <= x < boards.BOARD_WIDTH):
+            return False
+        if not (0 <= y < boards.BOARD_HEIGHT):
+            return False
+        if pc == self.status[y][x]:
+            return False
+        self.status[y][x] = pc
+        return True
 
+    def get_complete_lines(self):
+        line_idx_list = [idx for (idx, line) in enumerate(self.status) if pieces.EMPTY not in line]
+        return line_idx_list
 
-def change_piece_on_board(x, y, pc):
-    assert isinstance(x, int), x
-    assert isinstance(y, int), y
-    if not (0 <= x < boards.BOARD_WIDTH):
-        return False
-    if not (0 <= y < boards.BOARD_HEIGHT):
-        return False
-    if pc == board_status[y][x]:
-        return False
-    board_status[y][x] = pc
-    return True
+    def strip_board_lines(self, line_idx_list):
+        line_idx_set = set(line_idx_list)
+        nb = [line for (idx, line) in enumerate(self.status) if idx not in line_idx_set] # 不要被消除的
+        add_num = boards.BOARD_HEIGHT - len(nb)
+        self.status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
+        self.commit_status()
 
-
-def get_complete_lines():
-    line_idx_list = [idx for (idx, line) in enumerate(board_status) if pieces.EMPTY not in line]
-    return line_idx_list
-
-
-def strip_board_lines(line_idx_list):
-    global board_status
-    line_idx_set = set(line_idx_list)
-    nb = [line for (idx, line) in enumerate(board_status) if idx not in line_idx_set] # 不要被消除的
-    add_num = boards.BOARD_HEIGHT - len(nb)
-    board_status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
-    commit_board_status()
-
-
-def commit_board_status():
-    board_changed.emit(board_status)
-
+    def commit_status(self):
+        self.status_changed.emit(self.status)
 
 
 #===============================================================================
 # collide
 #===============================================================================
-def collide(pc, px, py, pdir):
+def collide(pc, px, py, pdir, board):
     """
     collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
     """
@@ -95,7 +90,7 @@ def collide(pc, px, py, pdir):
             return True
         if y < 0:
             continue
-        if not is_piece_on_board(x, y, pieces.EMPTY):
+        if not board.is_piece_on_board(x, y, pieces.EMPTY):
             return True
     return False
 
@@ -113,39 +108,39 @@ def collide(pc, px, py, pdir):
     if keys == "Down":
         py = (j for j in range(py, BOARD_HEIGHT) if collide(piece, px, j + 1)).next()
 """
-def move_piece_left(piece):
+def move_piece_left(piece, board):
     pc, px, py, pdir = piece.get_status()
     npx = px - 1
-    if collide(pc, npx, py, pdir):
+    if collide(pc, npx, py, pdir, board):
         return
     piece.update_status(pc, npx, py, pdir)
 
 
-def move_piece_right(piece):
+def move_piece_right(piece, board):
     pc, px, py, pdir = piece.get_status()
     npx = px + 1
-    if collide(pc, npx, py, pdir):
+    if collide(pc, npx, py, pdir, board):
         return
     piece.update_status(pc, npx, py, pdir)
 
 
-def rotate_piece(piece):
+def rotate_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     npdir = (pdir + 1) % 4
-    if collide(pc, px, py, npdir):
+    if collide(pc, px, py, npdir, board):
         return
     piece.update_status(pc, px, py, npdir)
 
 
-def drop_piece(piece):
+def drop_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     for j in range(py, boards.BOARD_HEIGHT):
-        if collide(pc, px, j + 1, pdir):
+        if collide(pc, px, j + 1, pdir, board):
             piece.update_status(pc, px, j, pdir)
             break
 
 
-def place_piece(piece):
+def place_piece(piece, board):
     """
     for i, j in piece:
         board[j + py][i + px] = pc
@@ -159,5 +154,5 @@ def place_piece(piece):
             continue
         if not (0 <= y < boards.BOARD_HEIGHT):
             continue
-        change_piece_on_board(x, y, pc)
-    commit_board_status()
+        board.change_piece(x, y, pc)
+    board.commit_status()

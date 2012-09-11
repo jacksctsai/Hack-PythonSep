@@ -93,7 +93,7 @@ def tick():
 # init
 #===============================================================================
 scr = None
-def init_ui(board, pc, px, py, pdir, event_callback):
+def init_ui(board_status, pc, px, py, pdir, event_callback):
     global scr, EVENT_CALLBACK
     global UI_BOARD, UI_RECT_ID, UI_PIECE
 
@@ -103,7 +103,7 @@ def init_ui(board, pc, px, py, pdir, event_callback):
     scr.bind_all("<Key>", EVENT_CALLBACK)
     scr.pack()
 
-    UI_BOARD = copy.deepcopy(board)
+    UI_BOARD = copy.deepcopy(board_status)
     UI_PIECE = [pc, px, py, pdir]
 
     p_shape = pieces.get_piece_shape(pc, pdir)
