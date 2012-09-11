@@ -151,7 +151,7 @@ def tick(t_stamp=[time.time(), 0]):
             if complete_lines:
                 # 消去
                 sound.distroy_sound.play()
-                tetris_core.strip_board_lines(complete_lines)
+                tetris_core.board.strip_board_lines(complete_lines)
                 ui.clear_ui_lines(complete_lines)
                 incr_score(2 ** len(complete_lines))
 

@@ -56,6 +56,13 @@ class Board(object):
         line_idx_list = [idx for (idx, line) in enumerate(self.status) if pieces.EMPTY not in line]
         return line_idx_list
 
+    def strip_board_lines(self, line_idx_list):
+        line_idx_set = set(line_idx_list)
+        nb = [line for (idx, line) in enumerate(self.status) if idx not in line_idx_set] # 不要被消除的
+        add_num = boards.BOARD_HEIGHT - len(nb)
+        self.status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
+        commit_board_status()
+
 
 #===============================================================================
 # board status
@@ -63,12 +70,7 @@ class Board(object):
 board = Board()
 
 
-def strip_board_lines(line_idx_list):
-    line_idx_set = set(line_idx_list)
-    nb = [line for (idx, line) in enumerate(board.status) if idx not in line_idx_set] # 不要被消除的
-    add_num = boards.BOARD_HEIGHT - len(nb)
-    board.status = boards.create_board_lines(add_num, pieces.EMPTY) + nb
-    commit_board_status()
+
 
 
 def commit_board_status():

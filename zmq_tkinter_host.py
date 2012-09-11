@@ -150,7 +150,7 @@ def handle_event(e=None):
     if not complete_lines:
         return
 
-    tetris_core.strip_board_lines(complete_lines)
+    tetris_core.board.strip_board_lines(complete_lines)
     incr_score(2 ** len(complete_lines))
 
 
