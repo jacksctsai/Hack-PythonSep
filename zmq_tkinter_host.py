@@ -35,7 +35,8 @@ def publish(msg):
     publisher.send('%s %s' % (ZMQ_PUBLISH_ID, msg))
 
 
-def publish_piece_info(pc, px, py, pdir):
+def publish_piece_info(piece_status):
+    pc, px, py, pdir = piece_status
     code_str = codec.encode_piece(pc, px, py, pdir)
     publish(code_str)
 

@@ -40,8 +40,9 @@ def redraw_board(board):
         ui_change_rect_color(i, j, color)
 
 
-def redraw_piece(pc, px, py, pdir):
+def redraw_piece(piece_status):
     global UI_PIECE
+    pc, px, py, pdir = piece_status
     opc, opx, opy, opdir = UI_PIECE
     old_shape = pieces.get_piece_shape(opc, opdir)
     new_shape = pieces.get_piece_shape(pc, pdir)

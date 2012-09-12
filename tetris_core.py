@@ -17,7 +17,7 @@ class Piece(object):
 
     def update_status(self, piece_status):
         self.status = piece_status
-        self.status_changed.emit(*self.status)
+        self.status_changed.emit(self.status)
 
     def get_status(self):
         return self.status
@@ -27,8 +27,8 @@ class Piece(object):
         new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
         """
         p = random.choice(pieces.ALL_PIECES)
-        self.status = (p, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
-        self.status_changed.emit(*self.status)
+        np = (p, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+        self.update_status(np)
 
 
 #===============================================================================
