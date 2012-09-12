@@ -132,6 +132,24 @@ def collide(piece, board):
 #===============================================================================
 # action
 #===============================================================================
+FALL_SUCCESS, FALL_NO_SPACE, FALL_ON_GROUND = 0, 1, 2
+def try_to_fall_piece(piece, board):
+    """
+    #自動落下
+    np = (pc, px, py + 1, pdir)
+    if not tetris_core.collide(np, board):
+        piece.update_status(*np)
+    """
+    pc, px, py, pdir = piece.get_status()
+    np = (pc, px, py + 1, pdir)
+    if not collide(np, board):
+        piece.update_status(*np)
+        return FALL_SUCCESS
+    if py < 0:
+        return FALL_NO_SPACE
+    return FALL_ON_GROUND
+
+
 """
     npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
     npiece = [(j, 3 - i) for (i, j) in piece] if keys == "Up" else piece   #rotate

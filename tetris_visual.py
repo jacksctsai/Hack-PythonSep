@@ -118,16 +118,16 @@ def tick(t_stamp=[time.time(), 0]):
     # 自動處理
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
-        pc, px, py, pdir = piece.get_status()
-        np = (pc, px, py + 1, pdir)
-        if not tetris_core.collide(np, board): #自動落下
-            piece.update_status(*np)
+        fall_rc = tetris_core.try_to_fall_piece(piece, board)
+        if fall_rc == tetris_core.FALL_SUCCESS:
+            pass
 
-        elif py < 0: #Game over
+        elif fall_rc == tetris_core.FALL_NO_SPACE: #Game over
             game_over()
             return
 
-        else:  #到底
+        else: # fall_rc == tetris_core.FALL_ON_GROUND
+            #到底
             tetris_core.place_piece(piece, board)
 
             # 檢查消去

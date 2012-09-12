@@ -86,16 +86,15 @@ def handle_event(e=None):
     if pause:
         return
 
-    pc, px, py, pdir = piece.get_status()
-    np = (pc, px, py + 1, pdir)
-    if not tetris_core.collide(np, board):
-        piece.update_status(*np)
+    fall_rc = tetris_core.try_to_fall_piece(piece, board)
+    if fall_rc == tetris_core.FALL_SUCCESS:
         return
 
-    if py < 0:
+    if fall_rc == tetris_core.FALL_NO_SPACE:
         game_over()
         return
 
+    # fall_rc == tetris_core.FALL_ON_GROUND
     tetris_core.place_piece(piece, board)
 
     piece.rand_new_piece()
