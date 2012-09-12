@@ -140,7 +140,7 @@ def tick(t_stamp=[time.time(), 0]):
                 score.incr_score(2 ** len(complete_lines))
 
             pc, px, py, pdir = pieces.new_piece()
-            ui.new_focus(pc, px, py, pdir)
+            ui.new_focus()
             piece.update_status(pc, px, py, pdir)
 
         t_stamp[0] = t_stamp[1]
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     # ui
     ui.init_ui()
     piece.status_changed.connect(ui.update_focus) # 方塊位置變更
-    ui.new_focus(_pc, _px, _py, _pdir)
+    ui.new_focus()
 
     # sound
     sound.init_sound()

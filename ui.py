@@ -65,16 +65,17 @@ def clear_ui_lines(fn):
 
 
 focus = None
-def new_focus(pc, px, py, pdir):
+def new_focus():
     global focus
-    color = PIECE_COLOR[pc]
-    p_shape = pieces.get_piece_shape(pc, pdir)
-    focus = [visual.box(pos=(px + p[0], py + p[1]), color=color, size=(R, R, R)) for p in p_shape]
+    focus = [visual.box(pos=(-1, -1), color=(0, 0, 0), size=(R, R, R)) for _ in range(4)]
 
 
 def update_focus(pc, px, py, pdir):
     p_shape = pieces.get_piece_shape(pc, pdir)
-    for i in xrange(4): focus[i].pos = visual.vector(px, py) + p_shape[i]
+    color = PIECE_COLOR[pc]
+    for i in xrange(4):
+        focus[i].pos = visual.vector(px, py) + p_shape[i]
+        focus[i].color = color
 
 
 #===============================================================================
