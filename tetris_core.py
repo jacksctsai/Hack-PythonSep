@@ -15,8 +15,8 @@ class Piece(object):
     def __init__(self):
         self.status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
 
-    def update_status(self, pc, px, py, pdir):
-        self.status = (pc, px, py, pdir)
+    def update_status(self, piece_status):
+        self.status = piece_status
         self.status_changed.emit(*self.status)
 
     def get_status(self):
@@ -138,12 +138,12 @@ def try_to_fall_piece(piece, board):
     #自動落下
     np = (pc, px, py + 1, pdir)
     if not tetris_core.collide(np, board):
-        piece.update_status(*np)
+        piece.update_status(np)
     """
     pc, px, py, pdir = piece.get_status()
     np = (pc, px, py + 1, pdir)
     if not collide(np, board):
-        piece.update_status(*np)
+        piece.update_status(np)
         return FALL_SUCCESS
     if py < 0:
         return FALL_NO_SPACE
@@ -165,7 +165,7 @@ def move_piece_left(piece, board):
     np = (pc, px - 1, py, pdir)
     if collide(np, board):
         return
-    piece.update_status(*np)
+    piece.update_status(np)
 
 
 def move_piece_right(piece, board):
@@ -173,7 +173,7 @@ def move_piece_right(piece, board):
     np = (pc, px + 1, py, pdir)
     if collide(np, board):
         return
-    piece.update_status(*np)
+    piece.update_status(np)
 
 
 def rotate_piece(piece, board):
@@ -182,7 +182,7 @@ def rotate_piece(piece, board):
     np = (pc, px, py, npdir)
     if collide(np, board):
         return
-    piece.update_status(*np)
+    piece.update_status(np)
 
 
 def drop_piece(piece, board):
@@ -194,7 +194,7 @@ def drop_piece(piece, board):
         if j == py:
             break
         np = (pc, px, j, pdir)
-        piece.update_status(*np)
+        piece.update_status(np)
         break
 
 

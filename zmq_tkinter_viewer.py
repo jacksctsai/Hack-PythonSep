@@ -57,7 +57,7 @@ def process_message(msg):
     header = msg[0]
     obj = msg[1]
     if header == codec.PIECE_HEADER:
-        piece.update_status(*obj)
+        piece.update_status(obj)
     elif header == codec.BOARD_HEADER:
         board.update_status(obj)
     elif header == codec.SCORE_HEADER:
