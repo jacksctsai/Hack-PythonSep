@@ -93,7 +93,7 @@ def tick():
 # init
 #===============================================================================
 scr = None
-def init_ui(board_status, pc, px, py, pdir, event_callback):
+def init_ui(board_status, event_callback):
     global scr, EVENT_CALLBACK
     global UI_BOARD, UI_RECT_ID, UI_PIECE
 
@@ -104,20 +104,13 @@ def init_ui(board_status, pc, px, py, pdir, event_callback):
     scr.pack()
 
     UI_BOARD = copy.deepcopy(board_status)
-    UI_PIECE = [pc, px, py, pdir]
-
-    p_shape = pieces.get_piece_shape(pc, pdir)
-    piece_region = [(i + px, j + py) for i, j in p_shape]
+    UI_PIECE = [pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION]
 
     UI_RECT_ID = []
     for j in range(boards.BOARD_HEIGHT):
         id_list = []
         for i in range(boards.BOARD_WIDTH):
-            if (i, j) in piece_region:
-                color = PIECE_COLOR[pc]
-            else:
-                color = BACKGROUND_COLOR
-            rect_id = ui_create_rect(i, j, color)
+            rect_id = ui_create_rect(i, j, BACKGROUND_COLOR)
             id_list.append(rect_id)
         UI_RECT_ID.append(id_list)
 

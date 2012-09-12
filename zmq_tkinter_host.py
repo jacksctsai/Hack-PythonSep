@@ -167,7 +167,7 @@ if __name__ == '__main__':
     publisher.bind("tcp://*:5556")
 
     # ui
-    ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
+    ui_tkinter.init_ui(_board, handle_event)
 
     # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
