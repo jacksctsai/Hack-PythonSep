@@ -47,21 +47,25 @@ def show_score(value):
     print 'score: %s' % value
 
 
-def process_message(msg):
+MESSAGE_HANDLE_TABLE = {
+    codec.PIECE_HEADER: piece.update_status,
+    codec.BOARD_HEADER: board.update_status,
+    codec.SCORE_HEADER: score.update_value,
+}
+
+no_op = lambda *args, **kwargs: None
+
+
+def handle_message(msg):
     _log = logging.getLogger('process_msg')
     _log.debug('[MESSAGE] %s' % `msg`)
 
     if len(msg) != 2:
         return
 
-    header = msg[0]
-    obj = msg[1]
-    if header == codec.PIECE_HEADER:
-        piece.update_status(obj)
-    elif header == codec.BOARD_HEADER:
-        board.update_status(obj)
-    elif header == codec.SCORE_HEADER:
-        score.update_value(obj)
+    (header, obj) = msg
+    handle_func = MESSAGE_HANDLE_TABLE.get(header, no_op)
+    return handle_func(obj)
 
 
 def polling():
@@ -77,7 +81,7 @@ def polling():
     if not msg:
         return False
 
-    process_message(msg)
+    handle_message(msg)
     return True
 
 
