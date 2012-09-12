@@ -32,7 +32,8 @@ def decode(code_str):
 # codec : piece
 #===============================================================================
 PIECE_HEADER = 'PIECE'
-def encode_piece(piece_id, px, py, piece_direction):
+def encode_piece(piece_status):
+    piece_id, px, py, piece_direction = piece_status
     code_str = '%s %s %s %s %s' % (PIECE_HEADER, piece_id, px, py, piece_direction)
     return code_str
 

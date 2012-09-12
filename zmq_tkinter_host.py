@@ -35,18 +35,18 @@ def publish(msg):
     publisher.send('%s %s' % (ZMQ_PUBLISH_ID, msg))
 
 
-def publish_piece_info(pc, px, py, pdir):
-    code_str = codec.encode_piece(pc, px, py, pdir)
+def publish_piece_info(piece_status):
+    code_str = codec.encode_piece(piece_status)
     publish(code_str)
 
 
-def publish_board_info(board):
-    code_str = codec.encode_board(board)
+def publish_board_info(board_status):
+    code_str = codec.encode_board(board_status)
     publish(code_str)
 
 
-def publish_score_info(score):
-    code_str = codec.encode_score(score)
+def publish_score_info(score_value):
+    code_str = codec.encode_score(score_value)
     publish(code_str)
 
 
@@ -125,15 +125,15 @@ def handle_event(e=None):
     if pause:
         return
 
-    pc, px, py, pdir = piece.get_status()
-    if not tetris_core.collide(pc, px, py + 1, pdir, board):
-        piece.update_status(pc, px, py + 1, pdir)
+    fall_rc = tetris_core.try_to_fall_piece(piece, board)
+    if fall_rc == tetris_core.FALL_SUCCESS:
         return
 
-    if py < 0:
+    if fall_rc == tetris_core.FALL_NO_SPACE:
         game_over()
         return
 
+    # fall_rc == tetris_core.FALL_ON_GROUND
     tetris_core.place_piece(piece, board)
 
     piece.rand_new_piece()

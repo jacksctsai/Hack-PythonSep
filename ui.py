@@ -70,7 +70,8 @@ def new_focus():
     focus = [visual.box(pos=(-1, -1), color=(0, 0, 0), size=(R, R, R)) for _ in range(4)]
 
 
-def update_focus(pc, px, py, pdir):
+def update_focus(piece_status):
+    pc, px, py, pdir = piece_status
     p_shape = pieces.get_piece_shape(pc, pdir)
     color = PIECE_COLOR[pc]
     for i in xrange(4):

@@ -12,10 +12,11 @@ class TestCodec(unittest.TestCase):
         piece_id = pieces.J_PIECE
         px, py = 5, 7
         piece_direction = 2
+        piece_status = (piece_id, px, py, piece_direction)
 
-        expect = codec.PIECE_HEADER, (piece_id, px, py, piece_direction)
+        expect = codec.PIECE_HEADER, piece_status
 
-        code_str = codec.encode_piece(piece_id, px, py, piece_direction)
+        code_str = codec.encode_piece(piece_status)
         result = codec.decode(code_str)
 
         self.assertEqual(result, expect)

@@ -15,9 +15,9 @@ class Piece(object):
     def __init__(self):
         self.status = (pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
 
-    def update_status(self, pc, px, py, pdir):
-        self.status = (pc, px, py, pdir)
-        self.status_changed.emit(*self.status)
+    def update_status(self, piece_status):
+        self.status = piece_status
+        self.status_changed.emit(self.status)
 
     def get_status(self):
         return self.status
@@ -27,8 +27,8 @@ class Piece(object):
         new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
         """
         p = random.choice(pieces.ALL_PIECES)
-        self.status = (p, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
-        self.status_changed.emit(*self.status)
+        np = (p, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+        self.update_status(np)
 
 
 #===============================================================================
@@ -109,12 +109,11 @@ class Score(object):
 #===============================================================================
 # collide
 #===============================================================================
-def collide(pc, px, py, pdir, board):
+def collide(piece, board):
     """
     collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
     """
-    assert isinstance(px, int), px
-    assert isinstance(py, int), py
+    pc, px, py, pdir = piece
     p_shape = pieces.get_piece_shape(pc, pdir)
     for (i, j) in p_shape:
         x = px + i
@@ -133,6 +132,24 @@ def collide(pc, px, py, pdir, board):
 #===============================================================================
 # action
 #===============================================================================
+FALL_SUCCESS, FALL_NO_SPACE, FALL_ON_GROUND = 0, 1, 2
+def try_to_fall_piece(piece, board):
+    """
+    #自動落下
+    np = (pc, px, py + 1, pdir)
+    if not tetris_core.collide(np, board):
+        piece.update_status(np)
+    """
+    pc, px, py, pdir = piece.get_status()
+    np = (pc, px, py + 1, pdir)
+    if not collide(np, board):
+        piece.update_status(np)
+        return FALL_SUCCESS
+    if py < 0:
+        return FALL_NO_SPACE
+    return FALL_ON_GROUND
+
+
 """
     npx = px + (-1 if keys == "Left" else (1 if keys == "Right" else 0)) # 左-1右1否則0
     npiece = [(j, 3 - i) for (i, j) in piece] if keys == "Up" else piece   #rotate
@@ -145,34 +162,40 @@ def collide(pc, px, py, pdir, board):
 """
 def move_piece_left(piece, board):
     pc, px, py, pdir = piece.get_status()
-    npx = px - 1
-    if collide(pc, npx, py, pdir, board):
+    np = (pc, px - 1, py, pdir)
+    if collide(np, board):
         return
-    piece.update_status(pc, npx, py, pdir)
+    piece.update_status(np)
 
 
 def move_piece_right(piece, board):
     pc, px, py, pdir = piece.get_status()
-    npx = px + 1
-    if collide(pc, npx, py, pdir, board):
+    np = (pc, px + 1, py, pdir)
+    if collide(np, board):
         return
-    piece.update_status(pc, npx, py, pdir)
+    piece.update_status(np)
 
 
 def rotate_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     npdir = (pdir + 1) % 4
-    if collide(pc, px, py, npdir, board):
+    np = (pc, px, py, npdir)
+    if collide(np, board):
         return
-    piece.update_status(pc, px, py, npdir)
+    piece.update_status(np)
 
 
 def drop_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     for j in range(py, boards.BOARD_HEIGHT):
-        if collide(pc, px, j + 1, pdir, board):
-            piece.update_status(pc, px, j, pdir)
+        np_next = (pc, px, j + 1, pdir)
+        if not collide(np_next, board):
+            continue
+        if j == py:
             break
+        np = (pc, px, j, pdir)
+        piece.update_status(np)
+        break
 
 
 def place_piece(piece, board):
