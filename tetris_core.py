@@ -109,12 +109,11 @@ class Score(object):
 #===============================================================================
 # collide
 #===============================================================================
-def collide(pc, px, py, pdir, board):
+def collide(piece, board):
     """
     collide = lambda piece, px, py: [1 for (i, j) in piece if board[j + py][i + px]] #是否碰撞
     """
-    assert isinstance(px, int), px
-    assert isinstance(py, int), py
+    pc, px, py, pdir = piece
     p_shape = pieces.get_piece_shape(pc, pdir)
     for (i, j) in p_shape:
         x = px + i
@@ -145,34 +144,40 @@ def collide(pc, px, py, pdir, board):
 """
 def move_piece_left(piece, board):
     pc, px, py, pdir = piece.get_status()
-    npx = px - 1
-    if collide(pc, npx, py, pdir, board):
+    np = (pc, px - 1, py, pdir)
+    if collide(np, board):
         return
-    piece.update_status(pc, npx, py, pdir)
+    piece.update_status(*np)
 
 
 def move_piece_right(piece, board):
     pc, px, py, pdir = piece.get_status()
-    npx = px + 1
-    if collide(pc, npx, py, pdir, board):
+    np = (pc, px + 1, py, pdir)
+    if collide(np, board):
         return
-    piece.update_status(pc, npx, py, pdir)
+    piece.update_status(*np)
 
 
 def rotate_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     npdir = (pdir + 1) % 4
-    if collide(pc, px, py, npdir, board):
+    np = (pc, px, py, npdir)
+    if collide(np, board):
         return
-    piece.update_status(pc, px, py, npdir)
+    piece.update_status(*np)
 
 
 def drop_piece(piece, board):
     pc, px, py, pdir = piece.get_status()
     for j in range(py, boards.BOARD_HEIGHT):
-        if collide(pc, px, j + 1, pdir, board):
-            piece.update_status(pc, px, j, pdir)
+        np_next = (pc, px, j + 1, pdir)
+        if not collide(np_next, board):
+            continue
+        if j == py:
             break
+        np = (pc, px, j, pdir)
+        piece.update_status(*np)
+        break
 
 
 def place_piece(piece, board):

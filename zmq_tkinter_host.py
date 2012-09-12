@@ -126,8 +126,9 @@ def handle_event(e=None):
         return
 
     pc, px, py, pdir = piece.get_status()
-    if not tetris_core.collide(pc, px, py + 1, pdir, board):
-        piece.update_status(pc, px, py + 1, pdir)
+    np = (pc, px, py + 1, pdir)
+    if not tetris_core.collide(np, board):
+        piece.update_status(*np)
         return
 
     if py < 0:

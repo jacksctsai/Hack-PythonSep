@@ -119,8 +119,9 @@ def tick(t_stamp=[time.time(), 0]):
     t_stamp[1] = time.time()
     if t_stamp[1] - t_stamp[0] > T and not is_pause():
         pc, px, py, pdir = piece.get_status()
-        if not tetris_core.collide(pc, px, py + 1, pdir, board): #自動落下
-            piece.update_status(pc, px, py + 1, pdir)
+        np = (pc, px, py + 1, pdir)
+        if not tetris_core.collide(np, board): #自動落下
+            piece.update_status(*np)
 
         elif py < 0: #Game over
             game_over()
