@@ -113,8 +113,6 @@ def handle_event(e=None):
 # initial
 #===============================================================================
 if __name__ == '__main__':
-    _board_status = board.get_status()
-
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     piece.update_status(_pc, _px, _py, _pdir)
 
@@ -122,7 +120,7 @@ if __name__ == '__main__':
     pause = False
 
     # ui
-    ui_tkinter.init_ui(_board_status, handle_event)
+    ui_tkinter.init_ui(handle_event)
     piece.status_changed.connect(ui_tkinter.redraw_piece)
     board.status_changed.connect(ui_tkinter.redraw_board)
     ui_tkinter.main_loop()

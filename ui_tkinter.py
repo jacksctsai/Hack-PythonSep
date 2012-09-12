@@ -1,4 +1,3 @@
-import copy
 import Tkinter
 
 import boards
@@ -93,7 +92,7 @@ def tick():
 # init
 #===============================================================================
 scr = None
-def init_ui(board_status, event_callback):
+def init_ui(event_callback):
     global scr, EVENT_CALLBACK
     global UI_BOARD, UI_RECT_ID, UI_PIECE
 
@@ -103,7 +102,7 @@ def init_ui(board_status, event_callback):
     scr.bind_all("<Key>", EVENT_CALLBACK)
     scr.pack()
 
-    UI_BOARD = copy.deepcopy(board_status)
+    UI_BOARD = boards.create_board_lines(boards.BOARD_HEIGHT, pieces.EMPTY)
     UI_PIECE = [pieces.EMPTY, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION]
 
     UI_RECT_ID = []

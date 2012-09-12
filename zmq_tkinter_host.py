@@ -154,8 +154,6 @@ def handle_event(e=None):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    _board = board.get_status()
-
     _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
     piece.update_status(_pc, _px, _py, _pdir)
 
@@ -167,7 +165,7 @@ if __name__ == '__main__':
     publisher.bind("tcp://*:5556")
 
     # ui
-    ui_tkinter.init_ui(_board, handle_event)
+    ui_tkinter.init_ui(handle_event)
 
     # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)

@@ -91,8 +91,6 @@ def handle_event(e=None):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    _board_status = board.get_status()
-
     context = zmq.Context()
 
     # connect to tetris server
@@ -105,7 +103,7 @@ if __name__ == '__main__':
     poller.register(subscriber, zmq.POLLIN)
 
     # ui
-    ui_tkinter.init_ui(_board_status, handle_event)
+    ui_tkinter.init_ui(handle_event)
 
     # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
