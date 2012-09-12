@@ -36,18 +36,17 @@ def publish(msg):
 
 
 def publish_piece_info(piece_status):
-    pc, px, py, pdir = piece_status
-    code_str = codec.encode_piece(pc, px, py, pdir)
+    code_str = codec.encode_piece(piece_status)
     publish(code_str)
 
 
-def publish_board_info(board):
-    code_str = codec.encode_board(board)
+def publish_board_info(board_status):
+    code_str = codec.encode_board(board_status)
     publish(code_str)
 
 
-def publish_score_info(score):
-    code_str = codec.encode_score(score)
+def publish_score_info(score_value):
+    code_str = codec.encode_score(score_value)
     publish(code_str)
 
 
