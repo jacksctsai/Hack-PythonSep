@@ -10,7 +10,6 @@ import logging
 import zmq
 
 import codec
-import pieces
 import tetris_core
 import ui_tkinter
 
@@ -137,8 +136,7 @@ def handle_event(e=None):
 
     tetris_core.place_piece(piece, board)
 
-    npc, npx, npy, npdir = pieces.new_piece()
-    piece.update_status(npc, npx, npy, npdir)
+    piece.rand_new_piece()
 
     complete_lines = board.get_complete_lines()
     if not complete_lines:
@@ -154,11 +152,6 @@ def handle_event(e=None):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    _board = board.get_status()
-
-    _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
-    piece.update_status(_pc, _px, _py, _pdir)
-
     valid_keys = NORMAL_KEYS
     pause = False
 
@@ -167,7 +160,7 @@ if __name__ == '__main__':
     publisher.bind("tcp://*:5556")
 
     # ui
-    ui_tkinter.init_ui(_board, _pc, _px, _py, _pdir, handle_event)
+    ui_tkinter.init_ui(handle_event)
 
     # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
@@ -175,6 +168,9 @@ if __name__ == '__main__':
     board.status_changed.connect(ui_tkinter.redraw_board)
     board.status_changed.connect(publish_board_info)
     score.value_changed.connect(publish_score_info)
+
+    # 第一個piece
+    piece.rand_new_piece()
 
     # main loop
     ui_tkinter.main_loop()

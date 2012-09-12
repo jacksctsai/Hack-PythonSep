@@ -25,7 +25,6 @@
 
 import time
 
-import pieces
 import sound
 import tetris_core
 import ui
@@ -139,9 +138,8 @@ def tick(t_stamp=[time.time(), 0]):
                 ui.clear_ui_lines(complete_lines)
                 score.incr_score(2 ** len(complete_lines))
 
-            pc, px, py, pdir = pieces.new_piece()
-            ui.new_focus(pc, px, py, pdir)
-            piece.update_status(pc, px, py, pdir)
+            ui.new_focus()
+            piece.rand_new_piece()
 
         t_stamp[0] = t_stamp[1]
 
@@ -151,14 +149,17 @@ def tick(t_stamp=[time.time(), 0]):
 
 
 if __name__ == '__main__':
-    _pc, _px, _py, _pdir = pieces.new_piece() # 第一個piece
-    piece.update_status(_pc, _px, _py, _pdir)
     valid_keys = NORMAL_KEYS
 
     # ui
     ui.init_ui()
+
+    # signal
     piece.status_changed.connect(ui.update_focus) # 方塊位置變更
-    ui.new_focus(_pc, _px, _py, _pdir)
+
+    # 第一個piece
+    ui.new_focus()
+    piece.rand_new_piece()
 
     # sound
     sound.init_sound()

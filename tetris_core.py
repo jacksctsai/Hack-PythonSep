@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import random
+
 import boards
 import pieces
 import signals
@@ -19,6 +21,14 @@ class Piece(object):
 
     def get_status(self):
         return self.status
+
+    def rand_new_piece(self):
+        """
+        new_piece = lambda pc: ([((z >> 2) + 1, z & 3) for z in xrange(16) if (pc >> z) & 1], 3, -2, pc)
+        """
+        p = random.choice(pieces.ALL_PIECES)
+        self.status = (p, pieces.PIECE_INIT_X, pieces.PIECE_INIT_Y, pieces.PIECE_INIT_DIRECTION)
+        self.status_changed.emit(*self.status)
 
 
 #===============================================================================
