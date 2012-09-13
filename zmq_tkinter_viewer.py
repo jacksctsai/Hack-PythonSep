@@ -47,17 +47,19 @@ def show_score(value):
     print 'score: %s' % value
 
 
-MESSAGE_HANDLE_TABLE = {
-    codec.PIECE_HEADER: piece.update_status,
-    codec.BOARD_HEADER: board.update_status,
-    codec.SCORE_HEADER: score.update_value,
-}
+MESSAGE_HANDLE_TABLE = {}
 
 no_op = lambda *args, **kwargs: None
 
 
+def register_handler(message_tag, handle_func):
+    assert isinstance(message_tag, str)
+    assert callable(handle_func)
+    MESSAGE_HANDLE_TABLE[message_tag] = handle_func
+
+
 def handle_message(msg):
-    _log = logging.getLogger('process_msg')
+    _log = logging.getLogger('handle_message')
     _log.debug('[MESSAGE] %s' % `msg`)
 
     if len(msg) != 2:
@@ -108,6 +110,11 @@ if __name__ == '__main__':
 
     # ui
     ui_tkinter.init_ui(handle_event)
+
+    # message handler
+    register_handler(codec.PIECE_HEADER, piece.update_status)
+    register_handler(codec.BOARD_HEADER, board.update_status)
+    register_handler(codec.SCORE_HEADER, score.update_value)
 
     # signal
     piece.status_changed.connect(ui_tkinter.redraw_piece)
