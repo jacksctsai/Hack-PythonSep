@@ -11,7 +11,7 @@ import logging
 import codec
 import tetris_core
 import ui_tkinter
-import zmq_publisher
+import zmq_pubsub
 
 
 #===============================================================================
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     valid_keys = NORMAL_KEYS
     pause = False
 
-    publisher = zmq_publisher.ZmqPublisher(ZMQ_PUBLISH_ENDPOINT, ZMQ_PUBLISH_ID)
+    publisher = zmq_pubsub.ZmqPublisher(ZMQ_PUBLISH_ENDPOINT, ZMQ_PUBLISH_ID)
 
     # ui
     ui_tkinter.init_ui(handle_event)

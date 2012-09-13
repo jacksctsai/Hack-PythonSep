@@ -11,7 +11,7 @@ import logging
 import codec
 import tetris_core
 import ui_tkinter
-import zmq_subscriber
+import zmq_pubsub
 
 
 #===============================================================================
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     logging.basicConfig()
 
     # subscriber
-    subscriber = zmq_subscriber.ZmqSubscriber(ZMQ_SUBSCRIBE_ENDPOINT, ZMQ_SUBSCRIBE_ID)
+    subscriber = zmq_pubsub.ZmqSubscriber(ZMQ_SUBSCRIBE_ENDPOINT, ZMQ_SUBSCRIBE_ID)
 
     # ui
     ui_tkinter.init_ui(handle_event)
