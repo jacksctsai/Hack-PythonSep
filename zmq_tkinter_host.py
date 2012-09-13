@@ -7,16 +7,17 @@
 """
 
 import logging
-import zmq
 
 import codec
 import tetris_core
 import ui_tkinter
+import zmq_publisher
 
 
 #===============================================================================
 # global constant
 #===============================================================================
+ZMQ_PUBLISH_ENDPOINT = 'tcp://*:5556'
 ZMQ_PUBLISH_ID = 'TETRIS'
 
 
@@ -28,18 +29,11 @@ board = tetris_core.Board()
 score = tetris_core.Score()
 
 
-#===============================================================================
-# ZMQ publish
-#===============================================================================
-def publish(msg):
-    publisher.send('%s %s' % (ZMQ_PUBLISH_ID, msg))
-
-
 def register_publish_encoder(encode_func):
     assert callable(encode_func)
     def pub_encode(*args, **kwargs):
         code_str = encode_func(*args, **kwargs)
-        return publish(code_str)
+        return publisher.publish(code_str)
     return pub_encode
 
 
@@ -148,9 +142,7 @@ if __name__ == '__main__':
     valid_keys = NORMAL_KEYS
     pause = False
 
-    context = zmq.Context()
-    publisher = context.socket(zmq.PUB)
-    publisher.bind("tcp://*:5556")
+    publisher = zmq_publisher.ZmqPublisher(ZMQ_PUBLISH_ENDPOINT, ZMQ_PUBLISH_ID)
 
     # ui
     ui_tkinter.init_ui(handle_event)
