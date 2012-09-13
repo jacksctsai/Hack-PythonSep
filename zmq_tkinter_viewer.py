@@ -7,16 +7,17 @@
 """
 
 import logging
-import zmq
 
 import codec
 import tetris_core
 import ui_tkinter
+import zmq_subscriber
 
 
 #===============================================================================
 # global constant
 #===============================================================================
+ZMQ_PUBLISH_ENDPOINT = 'tcp://localhost:5556'
 ZMQ_PUBLISH_ID = 'TETRIS'
 
 
@@ -70,15 +71,14 @@ def handle_message(msg):
     return handle_func(obj)
 
 
-def polling():
-    socks = dict(poller.poll(0))
-    if subscriber not in socks:
-        return False
-    if socks[subscriber] != zmq.POLLIN:
+def handle_event(e=None):
+    if e: # key event
+        return key_event(e)
+
+    code_str = subscriber.poll()
+    if not code_str:
         return False
 
-    recv_str = subscriber.recv()
-    (_, code_str) = recv_str.split(None, 1) # strip ZMQ_PUBLISH_ID
     msg = codec.decode(code_str)
     if not msg:
         return False
@@ -87,31 +87,16 @@ def polling():
     return True
 
 
-def handle_event(e=None):
-    if e:
-        return key_event(e)
-    else:
-        return polling()
-
-
 if __name__ == '__main__':
     logging.basicConfig()
 
-    context = zmq.Context()
-
-    # connect to tetris server
-    subscriber = context.socket(zmq.SUB)
-    subscriber.connect("tcp://localhost:5556")
-    subscriber.setsockopt(zmq.SUBSCRIBE, ZMQ_PUBLISH_ID)
-
-    # initialize poll set
-    poller = zmq.Poller()
-    poller.register(subscriber, zmq.POLLIN)
+    # subscriber
+    subscriber = zmq_subscriber.ZmqSubscriber(ZMQ_PUBLISH_ENDPOINT, ZMQ_PUBLISH_ID)
 
     # ui
     ui_tkinter.init_ui(handle_event)
 
-    # message handler
+    # handler
     register_handler(codec.PIECE_HEADER, piece.update_status)
     register_handler(codec.BOARD_HEADER, board.update_status)
     register_handler(codec.SCORE_HEADER, score.update_value)
