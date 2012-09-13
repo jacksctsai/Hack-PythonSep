@@ -17,8 +17,8 @@ import zmq_subscriber
 #===============================================================================
 # global constant
 #===============================================================================
-ZMQ_PUBLISH_ENDPOINT = 'tcp://localhost:5556'
-ZMQ_PUBLISH_ID = 'TETRIS'
+ZMQ_SUBSCRIBE_ENDPOINT = 'tcp://localhost:5556'
+ZMQ_SUBSCRIBE_ID = 'TETRIS'
 
 
 #===============================================================================
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     logging.basicConfig()
 
     # subscriber
-    subscriber = zmq_subscriber.ZmqSubscriber(ZMQ_PUBLISH_ENDPOINT, ZMQ_PUBLISH_ID)
+    subscriber = zmq_subscriber.ZmqSubscriber(ZMQ_SUBSCRIBE_ENDPOINT, ZMQ_SUBSCRIBE_ID)
 
     # ui
     ui_tkinter.init_ui(handle_event)

@@ -3,13 +3,13 @@ import zmq
 
 
 class ZmqSubscriber(object):
-    def __init__(self, publish_endpoint, publish_id):
+    def __init__(self, subscribe_endpoint, subscribe_id):
         context = zmq.Context()
 
         # connect to tetris server
         self._subscriber = context.socket(zmq.SUB)
-        self._subscriber.connect(publish_endpoint)
-        self._subscriber.setsockopt(zmq.SUBSCRIBE, publish_id)
+        self._subscriber.connect(subscribe_endpoint)
+        self._subscriber.setsockopt(zmq.SUBSCRIBE, subscribe_id)
 
         # initialize poll set
         self._poller = zmq.Poller()
