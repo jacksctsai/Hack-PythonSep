@@ -7,16 +7,17 @@
 """
 
 import logging
-import zmq
 
 import codec
 import tetris_core
 import ui_tkinter
+import zmq_pubsub
 
 
 #===============================================================================
 # global constant
 #===============================================================================
+ZMQ_PUBLISH_ENDPOINT = 'tcp://*:5556'
 ZMQ_PUBLISH_ID = 'TETRIS'
 
 
@@ -28,26 +29,12 @@ board = tetris_core.Board()
 score = tetris_core.Score()
 
 
-#===============================================================================
-# ZMQ publish
-#===============================================================================
-def publish(msg):
-    publisher.send('%s %s' % (ZMQ_PUBLISH_ID, msg))
-
-
-def publish_piece_info(piece_status):
-    code_str = codec.encode_piece(piece_status)
-    publish(code_str)
-
-
-def publish_board_info(board_status):
-    code_str = codec.encode_board(board_status)
-    publish(code_str)
-
-
-def publish_score_info(score_value):
-    code_str = codec.encode_score(score_value)
-    publish(code_str)
+def register_publish_encoder(encode_func):
+    assert callable(encode_func)
+    def pub_encode(*args, **kwargs):
+        code_str = encode_func(*args, **kwargs)
+        return publisher.publish(code_str)
+    return pub_encode
 
 
 #===============================================================================
@@ -155,19 +142,22 @@ if __name__ == '__main__':
     valid_keys = NORMAL_KEYS
     pause = False
 
-    context = zmq.Context()
-    publisher = context.socket(zmq.PUB)
-    publisher.bind("tcp://*:5556")
+    publisher = zmq_pubsub.ZmqPublisher(ZMQ_PUBLISH_ENDPOINT, ZMQ_PUBLISH_ID)
 
     # ui
     ui_tkinter.init_ui(handle_event)
 
+    # publish
+    pub_piece_func = register_publish_encoder(codec.encode_piece)
+    pub_board_func = register_publish_encoder(codec.encode_board)
+    pub_score_func = register_publish_encoder(codec.encode_score)
+
     # signal
+    piece.status_changed.connect(pub_piece_func)
     piece.status_changed.connect(ui_tkinter.redraw_piece)
-    piece.status_changed.connect(publish_piece_info)
+    board.status_changed.connect(pub_board_func)
     board.status_changed.connect(ui_tkinter.redraw_board)
-    board.status_changed.connect(publish_board_info)
-    score.value_changed.connect(publish_score_info)
+    score.value_changed.connect(pub_score_func)
 
     # 第一個piece
     piece.rand_new_piece()
